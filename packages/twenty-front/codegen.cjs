@@ -1,3 +1,5 @@
+console.log('Schema URL:', process.env.REACT_APP_SERVER_BASE_URL + '/graphql');
+
 module.exports = {
   schema: (process.env.REACT_APP_SERVER_BASE_URL ?? 'http://localhost:3000') + '/graphql',
   documents: [

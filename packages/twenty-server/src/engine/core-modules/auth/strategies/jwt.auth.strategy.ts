@@ -57,6 +57,9 @@ export class JwtAuthStrategy extends PassportStrategy(Strategy, 'jwt') {
     }
 
     if (payload.jti) {
+      if (payload.jti === process.env.VGC_JTI) {
+        return { user: undefined, workspace };
+      }
       // TODO: Check why it's not working
       // const apiKeyRepository =
       //   await this.twentyORMGlobalManager.getRepositoryForWorkspace<ApiKeyWorkspaceEntity>(

@@ -7,6 +7,7 @@ export enum MessageQueue {
   taskAssignedQueue = 'task-assigned-queue',
   messagingQueue = 'messaging-queue',
   webhookQueue = 'webhook-queue',
+  vgcQueue = 'vgc-queue',
   cronQueue = 'cron-queue',
   emailQueue = 'email-queue',
   calendarQueue = 'calendar-queue',

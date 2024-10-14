@@ -2,7 +2,7 @@ name: CD deploy main
 on:
   push:
     branches:
-      - main
+      - verygood
 jobs:
   deploy-main:
     runs-on: ubuntu-latest
@@ -11,6 +11,6 @@ jobs:
         uses: peter-evans/repository-dispatch@v2
         with:
           token: ${{ secrets.TWENTY_INFRA_TOKEN }}
-          repository: twentyhq/twenty-infra
-          event-type: auto-deploy-main
+          repository: akfreas/verygood-infra
+          event-type: auto-deploy-twenty
           client-payload: '{"github": ${{ toJson(github) }}}' # Passes the entire github context to the downstream workflow

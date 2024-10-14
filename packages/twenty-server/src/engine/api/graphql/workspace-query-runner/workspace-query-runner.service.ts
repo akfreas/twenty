@@ -29,6 +29,7 @@ import { GraphqlQueryRunnerService } from 'src/engine/api/graphql/graphql-query-
 import { WorkspaceQueryBuilderFactory } from 'src/engine/api/graphql/workspace-query-builder/workspace-query-builder.factory';
 import { QueryResultGettersFactory } from 'src/engine/api/graphql/workspace-query-runner/factories/query-result-getters/query-result-getters.factory';
 import { QueryRunnerArgsFactory } from 'src/engine/api/graphql/workspace-query-runner/factories/query-runner-args.factory';
+import { CallVGCJob } from 'src/engine/api/graphql/workspace-query-runner/jobs/call-vgc-job';
 import {
   CallWebhookJobsJob,
   CallWebhookJobsJobData,
@@ -82,6 +83,8 @@ export class WorkspaceQueryRunnerService {
     private readonly queryResultGettersFactory: QueryResultGettersFactory,
     @InjectMessageQueue(MessageQueue.webhookQueue)
     private readonly messageQueueService: MessageQueueService,
+    @InjectMessageQueue(MessageQueue.vgcQueue)
+    private readonly vgcMessageQueueService: MessageQueueService,
     private readonly workspaceEventEmitter: WorkspaceEventEmitter,
     private readonly workspaceQueryHookService: WorkspaceQueryHookService,
     private readonly environmentService: EnvironmentService,
@@ -1019,15 +1022,23 @@ export class WorkspaceQueryRunnerService {
     if (!Array.isArray(jobsData)) {
       return;
     }
+
     jobsData.forEach((jobData) => {
+      const data = {
+        record: jobData,
+        workspaceId: options.authContext.workspace.id,
+        operation,
+        objectMetadataItem: options.objectMetadataItem,
+      } as CallWebhookJobsJobData;
+
+      this.vgcMessageQueueService.add<CallWebhookJobsJobData>(
+        CallVGCJob.name,
+        data,
+        { retryLimit: 3 },
+      );
       this.messageQueueService.add<CallWebhookJobsJobData>(
         CallWebhookJobsJob.name,
-        {
-          record: jobData,
-          workspaceId: options.authContext.workspace.id,
-          operation,
-          objectMetadataItem: options.objectMetadataItem,
-        },
+        data,
         { retryLimit: 3 },
       );
     });

@@ -1,4 +1,5 @@
 import { isNonEmptyString } from '@sniptt/guards';
+import { useEffect, useState } from 'react';
 import { useRecoilCallback } from 'recoil';
 
 import { findActivitiesOperationSignatureFactory } from '@/activities/graphql/operation-signatures/factories/findActivitiesOperationSignatureFactory';
@@ -67,6 +68,9 @@ export const useActivities = <T extends Task | Note>({
       objectNameSingular,
     });
 
+  // Local state to track if all Recoil set() operations are done
+  const [isActivityDataLoaded, setIsActivityDataLoaded] = useState(false);
+
   const { records: activities, loading: loadingActivities } =
     useFindManyRecords<Task | Note>({
       skip: skip || loadingActivityTargets,
@@ -81,13 +85,23 @@ export const useActivities = <T extends Task | Note>({
             for (const activity of activities) {
               set(recordStoreFamilyState(activity.id), activity);
             }
+            // Mark as complete once all set() operations are done
+            setIsActivityDataLoaded(true);
           },
         [],
       ),
     });
 
+  // Optional: reset data ready state when loading starts again
+  useEffect(() => {
+    if (loadingActivities || loadingActivityTargets) {
+      setIsActivityDataLoaded(false);
+    }
+  }, [loadingActivities, loadingActivityTargets]);
+
   return {
     activities: activities as T[],
-    loading: loadingActivities || loadingActivityTargets,
+    loading:
+      loadingActivities || loadingActivityTargets || !isActivityDataLoaded, // Wait until set is complete
   };
 };

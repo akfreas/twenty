@@ -2,7 +2,7 @@ name: CI Server
 on:
   push:
     branches:
-      - main
+      - verygood
     paths:
       - 'package.json'
       - 'packages/twenty-server/**'

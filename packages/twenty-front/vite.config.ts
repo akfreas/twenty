@@ -17,6 +17,7 @@ export default defineConfig(({ command, mode }) => {
     VITE_BUILD_SOURCEMAP,
     VITE_DISABLE_TYPESCRIPT_CHECKER,
     VITE_DISABLE_ESLINT_CHECKER,
+    VGC_SERVER_BASE_URL,
   } = env;
 
   const isBuildCommand = command === 'build';
@@ -123,6 +124,7 @@ export default defineConfig(({ command, mode }) => {
     define: {
       'process.env': {
         REACT_APP_SERVER_BASE_URL,
+        VGC_SERVER_BASE_URL,
       },
     },
     css: {

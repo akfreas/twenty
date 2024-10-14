@@ -2,9 +2,11 @@
 FROM node:18.17.1-alpine as common-deps
 
 WORKDIR /app
-
+ARG GH_PAT
+RUN if [ -z "$GH_PAT" ]; then echo "Error: GH_PAT is not set" && exit 1; fi
 # Copy only the necessary files for dependency resolution
 COPY ./package.json ./yarn.lock ./.yarnrc.yml ./tsconfig.base.json ./nx.json /app/
+RUN echo "    npmAuthToken: \"${GH_PAT}\"" >> /app/.yarnrc.yml
 COPY ./.yarn/releases /app/.yarn/releases
 
 COPY ./packages/twenty-emails/package.json /app/packages/twenty-emails/
@@ -14,8 +16,7 @@ COPY ./packages/twenty-ui/package.json /app/packages/twenty-ui/
 COPY ./packages/twenty-front/package.json /app/packages/twenty-front/
 
 # Install all dependencies
-RUN yarn && yarn cache clean && npx nx reset
-
+RUN yarn && yarn cache clean && npx nx reset && yarn up @akfreas/vgc-core@^1.0.x
 
 # Build the back
 FROM common-deps as twenty-server-build
@@ -38,10 +39,11 @@ RUN yarn workspaces focus --production twenty-emails twenty-server
 FROM common-deps as twenty-front-build
 
 ARG REACT_APP_SERVER_BASE_URL
+ARG VGC_SERVER_BASE_URL
 
 COPY ./packages/twenty-front /app/packages/twenty-front
 COPY ./packages/twenty-ui /app/packages/twenty-ui
-RUN npx nx build twenty-front
+RUN VGC_SERVER_BASE_URL=$VGC_SERVER_BASE_URL npx nx build twenty-front
 
 
 # Final stage: Run the application
@@ -57,6 +59,8 @@ WORKDIR /app/packages/twenty-server
 
 ARG REACT_APP_SERVER_BASE_URL
 ENV REACT_APP_SERVER_BASE_URL $REACT_APP_SERVER_BASE_URL
+ARG VGC_SERVER_BASE_URL
+ENV VGC_SERVER_BASE_URL $VGC_SERVER_BASE_URL
 ARG SENTRY_RELEASE
 ENV SENTRY_RELEASE $SENTRY_RELEASE
 

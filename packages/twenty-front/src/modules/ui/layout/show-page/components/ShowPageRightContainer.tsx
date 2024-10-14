@@ -17,6 +17,7 @@ import { Notes } from '@/activities/notes/components/Notes';
 import { ObjectTasks } from '@/activities/tasks/components/ObjectTasks';
 import { TimelineActivities } from '@/activities/timelineActivities/components/TimelineActivities';
 import { ActivityTargetableObject } from '@/activities/types/ActivityTargetableEntity';
+import { Checklist } from '@/checklist/Checklist';
 import { CoreObjectNameSingular } from '@/object-metadata/types/CoreObjectNameSingular';
 import { ShowPageActivityContainer } from '@/ui/layout/show-page/components/ShowPageActivityContainer';
 import { TabList } from '@/ui/layout/tab/components/TabList';
@@ -94,9 +95,10 @@ export const ShowPageRightContainer = ({
     CoreObjectNameSingular.Company,
     CoreObjectNameSingular.Person,
   ].includes(targetObjectNameSingular);
-
   const shouldDisplayCalendarTab = isCompanyOrPerson;
   const shouldDisplayEmailsTab = emails && isCompanyOrPerson;
+  const shouldShowChecklistTab =
+    targetObjectNameSingular === CoreObjectNameSingular.Opportunity;
 
   const isMobile = useIsMobile() || isInRightDrawer;
 
@@ -111,6 +113,12 @@ export const ShowPageRightContainer = ({
           CoreObjectNameSingular.Note &&
           targetableObject.targetObjectNameSingular !==
             CoreObjectNameSingular.Task),
+    },
+    {
+      id: 'checklist',
+      title: 'Checklist',
+      Icon: IconCheckbox,
+      hide: !shouldShowChecklistTab,
     },
     {
       id: 'fields',
@@ -202,6 +210,8 @@ export const ShowPageRightContainer = ({
         return <EmailThreads targetableObject={targetableObject} />;
       case 'calendar':
         return <Calendar targetableObject={targetableObject} />;
+      case 'checklist':
+        return <Checklist targetableObject={targetableObject} />;
       default:
         return <></>;
     }

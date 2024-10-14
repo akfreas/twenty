@@ -24,7 +24,11 @@ dev-postgres-build:
 	@docker compose -f dev/docker-compose.yml up --build postgres -d
 
 prod-build:
-	@cd ../.. && docker build -f ./packages/twenty-docker/twenty/Dockerfile --tag twenty . && cd -
+	@cd ../.. && docker build \
+		--build-arg GH_PAT=$(GH_PAT) \
+		--build-arg VGC_SERVER_BASE_URL=$(VGC_SERVER_BASE_URL) \
+		-f ./packages/twenty-docker/twenty/Dockerfile \
+		--tag twenty . && cd -
 
 prod-run:
 	@docker run -d -p 3000:3000 --name twenty twenty
