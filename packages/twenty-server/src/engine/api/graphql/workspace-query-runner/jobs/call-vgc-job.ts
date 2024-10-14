@@ -2,9 +2,9 @@ import { HttpService } from '@nestjs/axios';
 import { Logger } from '@nestjs/common';
 
 import { CallWebhookJobsJobData } from 'src/engine/api/graphql/workspace-query-runner/jobs/call-webhook-jobs.job';
-import { Process } from 'src/engine/integrations/message-queue/decorators/process.decorator';
-import { Processor } from 'src/engine/integrations/message-queue/decorators/processor.decorator';
-import { MessageQueue } from 'src/engine/integrations/message-queue/message-queue.constants';
+import { Process } from 'src/engine/core-modules/message-queue/decorators/process.decorator';
+import { Processor } from 'src/engine/core-modules/message-queue/decorators/processor.decorator';
+import { MessageQueue } from 'src/engine/core-modules/message-queue/message-queue.constants';
 
 @Processor(MessageQueue.vgcQueue)
 export class CallVGCJob {
