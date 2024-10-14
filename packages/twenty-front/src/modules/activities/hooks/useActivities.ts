@@ -52,13 +52,12 @@ export const useActivities = <T extends Task | Note>({
     ),
   ];
 
+  const skipBecauseNoActivityTargetFound = activityIds.length === 0;
+
   const filter: RecordGqlOperationFilter = {
-    id:
-      targetableObjects.length > 0
-        ? {
-            in: activityIds,
-          }
-        : undefined,
+    id: {
+      in: activityIds,
+    },
     ...activitiesFilters,
   };
 
@@ -73,7 +72,7 @@ export const useActivities = <T extends Task | Note>({
 
   const { records: activities, loading: loadingActivities } =
     useFindManyRecords<Task | Note>({
-      skip: skip || loadingActivityTargets,
+      skip: skip || loadingActivityTargets || skipBecauseNoActivityTargetFound,
       objectNameSingular:
         FIND_ACTIVITIES_OPERATION_SIGNATURE.objectNameSingular,
       recordGqlFields: FIND_ACTIVITIES_OPERATION_SIGNATURE.fields,
