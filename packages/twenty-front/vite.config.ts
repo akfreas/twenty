@@ -131,6 +131,7 @@ export default defineConfig(({ command, mode }) => {
     },
     resolve: {
       alias: {
+        react: path.resolve('../../node_modules/react'),
         path: 'rollup-plugin-node-polyfills/polyfills/path',
       },
     },
