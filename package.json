@@ -351,7 +351,8 @@
   "resolutions": {
     "graphql": "16.8.0",
     "type-fest": "4.10.1",
-    "typescript": "5.3.3"
+    "typescript": "5.3.3",
+    "react-dom": "18.2.0"
   },
   "version": "0.2.1",
   "nx": {},
