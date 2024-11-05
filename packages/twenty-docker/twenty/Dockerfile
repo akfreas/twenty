@@ -4,6 +4,7 @@ FROM node:18.17.1-alpine as common-deps
 WORKDIR /app
 ARG GH_PAT
 RUN if [ -z "$GH_PAT" ]; then echo "Error: GH_PAT is not set" && exit 1; fi
+RUN if [ -z "$VGC_SERVER_BASE_URL" ]; then echo "Error: VGC_SERVER_BASE_URL is not set" && exit 1; fi
 # Copy only the necessary files for dependency resolution
 COPY ./package.json ./yarn.lock ./.yarnrc.yml ./tsconfig.base.json ./nx.json /app/
 RUN echo "    npmAuthToken: \"${GH_PAT}\"" >> /app/.yarnrc.yml
