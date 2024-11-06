@@ -3,6 +3,8 @@ FROM node:18.17.1-alpine as common-deps
 
 WORKDIR /app
 ARG GH_PAT
+ARG VGC_SERVER_BASE_URL
+
 RUN if [ -z "$GH_PAT" ]; then echo "Error: GH_PAT is not set" && exit 1; fi
 RUN if [ -z "$VGC_SERVER_BASE_URL" ]; then echo "Error: VGC_SERVER_BASE_URL is not set" && exit 1; fi
 # Copy only the necessary files for dependency resolution
@@ -40,7 +42,6 @@ RUN yarn workspaces focus --production twenty-emails twenty-server
 FROM common-deps as twenty-front-build
 
 ARG REACT_APP_SERVER_BASE_URL
-ARG VGC_SERVER_BASE_URL
 
 COPY ./packages/twenty-front /app/packages/twenty-front
 COPY ./packages/twenty-ui /app/packages/twenty-ui
