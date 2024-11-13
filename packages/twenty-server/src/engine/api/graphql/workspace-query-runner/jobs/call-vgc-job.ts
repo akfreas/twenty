@@ -1,10 +1,10 @@
 import { HttpService } from '@nestjs/axios';
 import { Logger } from '@nestjs/common';
 
-import { CallWebhookJobsJobData } from 'src/engine/api/graphql/workspace-query-runner/jobs/call-webhook-jobs.job';
 import { Process } from 'src/engine/core-modules/message-queue/decorators/process.decorator';
 import { Processor } from 'src/engine/core-modules/message-queue/decorators/processor.decorator';
 import { MessageQueue } from 'src/engine/core-modules/message-queue/message-queue.constants';
+import { CallWebhookJobData } from 'src/modules/webhook/jobs/call-webhook.job';
 
 @Processor(MessageQueue.vgcQueue)
 export class CallVGCJob {
@@ -15,15 +15,13 @@ export class CallVGCJob {
   }
 
   @Process(CallVGCJob.name)
-  async handle(data: CallWebhookJobsJobData): Promise<void> {
-    const nameSingular = data.objectMetadataItem.nameSingular;
-    const operation = data.operation;
-    const eventType = `${operation}.${nameSingular}`;
+  async handle(data: CallWebhookJobData): Promise<void> {
+    const eventType = data.eventName;
     const payload = {
       eventType,
       objectMetadata: {
-        id: data.objectMetadataItem.id,
-        nameSingular: data.objectMetadataItem.nameSingular,
+        id: data.objectMetadata.id,
+        nameSingular: data.objectMetadata.nameSingular,
       },
       workspaceId: data.workspaceId,
       eventDate: new Date(),

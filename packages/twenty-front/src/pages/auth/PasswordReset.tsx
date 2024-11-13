@@ -1,3 +1,15 @@
+import { SKELETON_LOADER_HEIGHT_SIZES } from '@/activities/components/SkeletonLoader';
+import { Logo } from '@/auth/components/Logo';
+import { Title } from '@/auth/components/Title';
+import { useAuth } from '@/auth/hooks/useAuth';
+import { useIsLogged } from '@/auth/hooks/useIsLogged';
+import { PASSWORD_REGEX } from '@/auth/utils/passwordRegex';
+import { useReadCaptchaToken } from '@/captcha/hooks/useReadCaptchaToken';
+import { AppPath } from '@/types/AppPath';
+import { SnackBarVariant } from '@/ui/feedback/snack-bar-manager/components/SnackBar';
+import { useSnackBar } from '@/ui/feedback/snack-bar-manager/hooks/useSnackBar';
+import { TextInputV2 } from '@/ui/input/components/TextInputV2';
+import { isDefaultLayoutAuthModalVisibleState } from '@/ui/layout/states/isDefaultLayoutAuthModalVisibleState';
 import { useTheme } from '@emotion/react';
 import styled from '@emotion/styled';
 import { zodResolver } from '@hookform/resolvers/zod';
@@ -8,21 +20,8 @@ import { Controller, useForm } from 'react-hook-form';
 import Skeleton, { SkeletonTheme } from 'react-loading-skeleton';
 import { useNavigate, useParams } from 'react-router-dom';
 import { useSetRecoilState } from 'recoil';
+import { AnimatedEaseIn, MainButton } from 'twenty-ui';
 import { z } from 'zod';
-
-import { Logo } from '@/auth/components/Logo';
-import { Title } from '@/auth/components/Title';
-import { useAuth } from '@/auth/hooks/useAuth';
-import { useIsLogged } from '@/auth/hooks/useIsLogged';
-import { PASSWORD_REGEX } from '@/auth/utils/passwordRegex';
-import { useReadCaptchaToken } from '@/captcha/hooks/useReadCaptchaToken';
-import { AppPath } from '@/types/AppPath';
-import { SnackBarVariant } from '@/ui/feedback/snack-bar-manager/components/SnackBar';
-import { useSnackBar } from '@/ui/feedback/snack-bar-manager/hooks/useSnackBar';
-import { MainButton } from '@/ui/input/button/components/MainButton';
-import { TextInputV2 } from '@/ui/input/components/TextInputV2';
-import { isDefaultLayoutAuthModalVisibleState } from '@/ui/layout/states/isDefaultLayoutAuthModalVisibleState';
-import { AnimatedEaseIn } from '@/ui/utilities/animation/components/AnimatedEaseIn';
 import {
   useUpdatePasswordViaResetTokenMutation,
   useValidatePasswordResetTokenQuery,
@@ -174,7 +173,7 @@ export const PasswordReset = () => {
               highlightColor={theme.background.secondary}
             >
               <Skeleton
-                height={32}
+                height={SKELETON_LOADER_HEIGHT_SIZES.standard.m}
                 count={2}
                 style={{
                   marginBottom: theme.spacing(2),

@@ -2,7 +2,7 @@ import { Meta, StoryObj } from '@storybook/react';
 import { within } from '@storybook/test';
 import { graphql, HttpResponse } from 'msw';
 
-import { SettingsDevelopersWebhooksDetail } from '~/pages/settings/developers/webhooks/SettingsDevelopersWebhookDetail';
+import { SettingsDevelopersWebhooksDetail } from '~/pages/settings/developers/webhooks/components/SettingsDevelopersWebhookDetail';
 import {
   PageDecorator,
   PageDecoratorArgs,
@@ -29,7 +29,7 @@ const meta: Meta<PageDecoratorArgs> = {
                 targetUrl: 'https://example.com/webhook',
                 description: 'A Sample Description',
                 updatedAt: '2021-08-27T12:00:00Z',
-                operation: 'create',
+                operation: 'created',
                 __typename: 'Webhook',
               },
             },

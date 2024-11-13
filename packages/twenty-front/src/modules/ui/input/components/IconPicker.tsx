@@ -1,7 +1,14 @@
-import { useMemo, useState } from 'react';
 import styled from '@emotion/styled';
+import { useMemo, useState } from 'react';
 import { useRecoilValue } from 'recoil';
-import { IconApps, IconComponent, useIcons } from 'twenty-ui';
+import {
+  IconApps,
+  IconComponent,
+  useIcons,
+  IconButton,
+  IconButtonVariant,
+  LightIconButton,
+} from 'twenty-ui';
 
 import { Dropdown } from '@/ui/layout/dropdown/components/Dropdown';
 import { DropdownMenu } from '@/ui/layout/dropdown/components/DropdownMenu';
@@ -14,8 +21,6 @@ import { useSelectableList } from '@/ui/layout/selectable-list/hooks/useSelectab
 import { usePreviousHotkeyScope } from '@/ui/utilities/hotkey/hooks/usePreviousHotkeyScope';
 import { arrayToChunks } from '~/utils/array/arrayToChunks';
 
-import { IconButton, IconButtonVariant } from '../button/components/IconButton';
-import { LightIconButton } from '../button/components/LightIconButton';
 import { IconPickerHotkeyScope } from '../types/IconPickerHotkeyScope';
 
 export type IconPickerProps = {
@@ -147,6 +152,8 @@ export const IconPicker = ({
     [matchingSearchIconKeys],
   );
 
+  const icon = selectedIconKey ? getIcon(selectedIconKey) : IconApps;
+
   return (
     <div className={className}>
       <Dropdown
@@ -160,7 +167,7 @@ export const IconPicker = ({
                 : `(no icon selected)`
             }`}
             disabled={disabled}
-            Icon={selectedIconKey ? getIcon(selectedIconKey) : IconApps}
+            Icon={icon}
             variant={variant}
           />
         }

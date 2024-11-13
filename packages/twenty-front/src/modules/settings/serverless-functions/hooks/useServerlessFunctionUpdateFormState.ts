@@ -1,6 +1,6 @@
-import { Dispatch, SetStateAction, useState } from 'react';
 import { useGetOneServerlessFunction } from '@/settings/serverless-functions/hooks/useGetOneServerlessFunction';
 import { useGetOneServerlessFunctionSourceCode } from '@/settings/serverless-functions/hooks/useGetOneServerlessFunctionSourceCode';
+import { Dispatch, SetStateAction, useState } from 'react';
 import { FindOneServerlessFunctionSourceCodeQuery } from '~/generated-metadata/graphql';
 
 export type ServerlessFunctionNewFormValues = {
@@ -9,7 +9,7 @@ export type ServerlessFunctionNewFormValues = {
 };
 
 export type ServerlessFunctionFormValues = ServerlessFunctionNewFormValues & {
-  code: string;
+  code: { [filePath: string]: string } | undefined;
 };
 
 type SetServerlessFunctionFormValues = Dispatch<
@@ -26,18 +26,19 @@ export const useServerlessFunctionUpdateFormState = (
   const [formValues, setFormValues] = useState<ServerlessFunctionFormValues>({
     name: '',
     description: '',
-    code: '',
+    code: undefined,
   });
 
-  const { serverlessFunction } =
-    useGetOneServerlessFunction(serverlessFunctionId);
+  const { serverlessFunction } = useGetOneServerlessFunction({
+    id: serverlessFunctionId,
+  });
 
   const { loading } = useGetOneServerlessFunctionSourceCode({
     id: serverlessFunctionId,
     version: 'draft',
     onCompleted: (data: FindOneServerlessFunctionSourceCodeQuery) => {
       const newState = {
-        code: data?.getServerlessFunctionSourceCode || '',
+        code: data?.getServerlessFunctionSourceCode || undefined,
         name: serverlessFunction?.name || '',
         description: serverlessFunction?.description || '',
       };

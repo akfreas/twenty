@@ -16,8 +16,12 @@ import { FieldMetadataEntity } from 'src/engine/metadata-modules/field-metadata/
 import { BeforeUpdateOneObject } from 'src/engine/metadata-modules/object-metadata/hooks/before-update-one-object.hook';
 import { ObjectMetadataGraphqlApiExceptionInterceptor } from 'src/engine/metadata-modules/object-metadata/interceptors/object-metadata-graphql-api-exception.interceptor';
 import { ObjectMetadataResolver } from 'src/engine/metadata-modules/object-metadata/object-metadata.resolver';
+import { ObjectMetadataMigrationService } from 'src/engine/metadata-modules/object-metadata/services/object-metadata-migration.service';
+import { ObjectMetadataRelatedRecordsService } from 'src/engine/metadata-modules/object-metadata/services/object-metadata-related-records.service';
+import { ObjectMetadataRelationService } from 'src/engine/metadata-modules/object-metadata/services/object-metadata-relation.service';
 import { RelationMetadataEntity } from 'src/engine/metadata-modules/relation-metadata/relation-metadata.entity';
 import { RemoteTableRelationsModule } from 'src/engine/metadata-modules/remote-server/remote-table/remote-table-relations/remote-table-relations.module';
+import { SearchModule } from 'src/engine/metadata-modules/search/search.module';
 import { WorkspaceMetadataVersionModule } from 'src/engine/metadata-modules/workspace-metadata-version/workspace-metadata-version.module';
 import { WorkspaceMigrationModule } from 'src/engine/metadata-modules/workspace-migration/workspace-migration.module';
 import { WorkspaceMigrationRunnerModule } from 'src/engine/workspace-manager/workspace-migration-runner/workspace-migration-runner.module';
@@ -44,8 +48,14 @@ import { UpdateObjectPayload } from './dtos/update-object.input';
         WorkspaceMigrationRunnerModule,
         WorkspaceMetadataVersionModule,
         RemoteTableRelationsModule,
+        SearchModule,
       ],
-      services: [ObjectMetadataService],
+      services: [
+        ObjectMetadataService,
+        ObjectMetadataMigrationService,
+        ObjectMetadataRelationService,
+        ObjectMetadataRelatedRecordsService,
+      ],
       resolvers: [
         {
           EntityClass: ObjectMetadataEntity,

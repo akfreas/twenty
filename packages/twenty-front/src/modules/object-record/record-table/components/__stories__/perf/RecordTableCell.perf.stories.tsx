@@ -12,16 +12,16 @@ import {
   useSetRecordValue,
 } from '@/object-record/record-store/contexts/RecordFieldValueSelectorContext';
 import { recordStoreFamilyState } from '@/object-record/record-store/states/recordStoreFamilyState';
+import { RecordTableComponentInstance } from '@/object-record/record-table/components/RecordTableComponentInstance';
 import { RecordTableCellContext } from '@/object-record/record-table/contexts/RecordTableCellContext';
 import { RecordTableContext } from '@/object-record/record-table/contexts/RecordTableContext';
 import { RecordTableRowContext } from '@/object-record/record-table/contexts/RecordTableRowContext';
-import { RecordTableScope } from '@/object-record/record-table/scopes/RecordTableScope';
 import { ChipGeneratorsDecorator } from '~/testing/decorators/ChipGeneratorsDecorator';
 import { MemoryRouterDecorator } from '~/testing/decorators/MemoryRouterDecorator';
 import { getProfilingStory } from '~/testing/profiling/utils/getProfilingStory';
 
 import { RecordTableCellFieldContextWrapper } from '@/object-record/record-table/record-table-cell/components/RecordTableCellFieldContextWrapper';
-import { generatedMockObjectMetadataItems } from '~/testing/mock-data/objectMetadataItems';
+import { generatedMockObjectMetadataItems } from '~/testing/mock-data/generatedMockObjectMetadataItems';
 import { mockPerformance } from './mock';
 
 const RelationFieldValueSetterEffect = () => {
@@ -70,7 +70,7 @@ const meta: Meta = {
               onMoveFocus: () => {},
               onCloseTableCell: () => {},
               onMoveSoftFocusToCell: () => {},
-              onContextMenu: () => {},
+              onActionMenuDropdownOpened: () => {},
               onCellMouseEnter: () => {},
               visibleTableColumns: mockPerformance.visibleTableColumns as any,
               objectNameSingular:
@@ -78,8 +78,8 @@ const meta: Meta = {
               recordTableId: 'recordTableId',
             }}
           >
-            <RecordTableScope
-              recordTableScopeId="asd"
+            <RecordTableComponentInstance
+              recordTableId="asd"
               onColumnsChange={() => {}}
             >
               <RecordTableRowContext.Provider
@@ -132,7 +132,7 @@ const meta: Meta = {
                   </FieldContext.Provider>
                 </RecordTableCellContext.Provider>
               </RecordTableRowContext.Provider>
-            </RecordTableScope>
+            </RecordTableComponentInstance>
           </RecordTableContext.Provider>
         </RecordFieldValueSelectorContextProvider>
       );

@@ -1,6 +1,6 @@
 import { SaveAndCancelButtons } from '@/settings/components/SaveAndCancelButtons/SaveAndCancelButtons';
 import { SettingsPageContainer } from '@/settings/components/SettingsPageContainer';
-import { SubMenuTopBarContainer } from '@/ui/layout/page/SubMenuTopBarContainer';
+import { SubMenuTopBarContainer } from '@/ui/layout/page/components/SubMenuTopBarContainer';
 import { useNavigate } from 'react-router-dom';
 
 import { SettingsServerlessFunctionNewForm } from '@/settings/serverless-functions/components/SettingsServerlessFunctionNewForm';
@@ -9,11 +9,9 @@ import { ServerlessFunctionNewFormValues } from '@/settings/serverless-functions
 import { SettingsServerlessFunctionHotkeyScope } from '@/settings/serverless-functions/types/SettingsServerlessFunctionHotKeyScope';
 import { getSettingsPagePath } from '@/settings/utils/getSettingsPagePath';
 import { SettingsPath } from '@/types/SettingsPath';
-import { DEFAULT_CODE } from '@/ui/input/code-editor/components/CodeEditor';
 import { useScopedHotkeys } from '@/ui/utilities/hotkey/hooks/useScopedHotkeys';
 import { useState } from 'react';
 import { Key } from 'ts-key-enum';
-import { IconFunction } from 'twenty-ui';
 import { useHotkeyScopeOnMount } from '~/hooks/useHotkeyScopeOnMount';
 import { isDefined } from '~/utils/isDefined';
 
@@ -31,7 +29,6 @@ export const SettingsServerlessFunctionsNew = () => {
     const newServerlessFunction = await createOneServerlessFunction({
       name: formValues.name,
       description: formValues.description,
-      code: DEFAULT_CODE,
     });
 
     if (!isDefined(newServerlessFunction?.data)) {
@@ -79,7 +76,6 @@ export const SettingsServerlessFunctionsNew = () => {
 
   return (
     <SubMenuTopBarContainer
-      Icon={IconFunction}
       title="New Function"
       links={[
         {

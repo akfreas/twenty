@@ -11,6 +11,7 @@ import {
   QueryOptions,
 } from '@ptc-org/nestjs-query-graphql';
 import {
+  IsArray,
   IsDateString,
   IsEnum,
   IsNotEmpty,
@@ -53,16 +54,15 @@ export class ServerlessFunctionDTO {
   @IsString()
   @IsNotEmpty()
   @Field()
-  sourceCodeHash: string;
-
-  @IsString()
-  @IsNotEmpty()
-  @Field()
   runtime: string;
 
   @IsString()
   @Field({ nullable: true })
   latestVersion: string;
+
+  @IsArray()
+  @Field(() => [String], { nullable: false })
+  publishedVersions: string[];
 
   @IsEnum(ServerlessFunctionSyncStatus)
   @IsNotEmpty()

@@ -1,7 +1,6 @@
 import { Injectable } from '@nestjs/common';
 import { InjectRepository } from '@nestjs/typeorm';
 
-import { isDefined } from 'class-validator';
 import chunk from 'lodash.chunk';
 import compact from 'lodash.compact';
 import { Any, EntityManager, Repository } from 'typeorm';
@@ -13,7 +12,6 @@ import { ObjectMetadataEntity } from 'src/engine/metadata-modules/object-metadat
 import { InjectObjectMetadataRepository } from 'src/engine/object-metadata-repository/object-metadata-repository.decorator';
 import { TwentyORMGlobalManager } from 'src/engine/twenty-orm/twenty-orm-global.manager';
 import { WorkspaceEventEmitter } from 'src/engine/workspace-event-emitter/workspace-event-emitter';
-import { PERSON_STANDARD_FIELD_IDS } from 'src/engine/workspace-manager/workspace-sync-metadata/constants/standard-field-ids';
 import { STANDARD_OBJECT_IDS } from 'src/engine/workspace-manager/workspace-sync-metadata/constants/standard-object-ids';
 import { ConnectedAccountWorkspaceEntity } from 'src/modules/connected-account/standard-objects/connected-account.workspace-entity';
 import { CONTACTS_CREATION_BATCH_SIZE } from 'src/modules/contact-creation-manager/constants/contacts-creation-batch-size.constant';
@@ -27,6 +25,7 @@ import { PersonWorkspaceEntity } from 'src/modules/person/standard-objects/perso
 import { WorkspaceMemberRepository } from 'src/modules/workspace-member/repositories/workspace-member.repository';
 import { WorkspaceMemberWorkspaceEntity } from 'src/modules/workspace-member/standard-objects/workspace-member.workspace-entity';
 import { isWorkEmail } from 'src/utils/is-work-email';
+import { DatabaseEventAction } from 'src/engine/api/graphql/graphql-query-runner/enums/database-event-action';
 
 @Injectable()
 export class CreateCompanyAndContactService {
@@ -53,13 +52,6 @@ export class CreateCompanyAndContactService {
     if (!contactsToCreate || contactsToCreate.length === 0) {
       return [];
     }
-
-    const emailsFieldMetadata = await this.fieldMetadataRepository.findOne({
-      where: {
-        workspaceId: workspaceId,
-        standardId: PERSON_STANDARD_FIELD_IDS.emails,
-      },
-    });
 
     const personRepository =
       await this.twentyORMGlobalManager.getRepositoryForWorkspace(
@@ -89,16 +81,14 @@ export class CreateCompanyAndContactService {
     }
 
     const alreadyCreatedContacts = await personRepository.find({
-      where: isDefined(emailsFieldMetadata)
-        ? {
-            emails: { primaryEmail: Any(uniqueHandles) },
-          }
-        : { email: Any(uniqueHandles) },
+      where: {
+        emails: { primaryEmail: Any(uniqueHandles) },
+      },
     });
 
-    const alreadyCreatedContactEmails: string[] = isDefined(emailsFieldMetadata)
-      ? alreadyCreatedContacts?.map(({ emails }) => emails?.primaryEmail)
-      : alreadyCreatedContacts?.map(({ email }) => email);
+    const alreadyCreatedContactEmails: string[] = alreadyCreatedContacts?.map(
+      ({ emails }) => emails?.primaryEmail,
+    );
 
     const filteredContactsToCreate = uniqueContacts.filter(
       (participant) =>
@@ -206,7 +196,7 @@ export class CreateCompanyAndContactService {
       );
 
       this.workspaceEventEmitter.emit(
-        'person.created',
+        `person.${DatabaseEventAction.CREATED}`,
         createdPeople.map(
           (createdPerson) =>
             ({

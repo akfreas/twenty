@@ -1,5 +1,4 @@
 import { Injectable } from '@nestjs/common';
-import { OnEvent } from '@nestjs/event-emitter';
 
 import { ObjectRecordCreateEvent } from 'src/engine/core-modules/event-emitter/types/object-record-create.event';
 import { ObjectRecordUpdateEvent } from 'src/engine/core-modules/event-emitter/types/object-record-update.event';
@@ -17,6 +16,8 @@ import {
   CalendarEventParticipantUnmatchParticipantJobData,
 } from 'src/modules/calendar/calendar-event-participant-manager/jobs/calendar-event-participant-unmatch-participant.job';
 import { PersonWorkspaceEntity } from 'src/modules/person/standard-objects/person.workspace-entity';
+import { OnDatabaseEvent } from 'src/engine/api/graphql/graphql-query-runner/decorators/on-database-event.decorator';
+import { DatabaseEventAction } from 'src/engine/api/graphql/graphql-query-runner/enums/database-event-action';
 
 @Injectable()
 export class CalendarEventParticipantPersonListener {
@@ -25,17 +26,14 @@ export class CalendarEventParticipantPersonListener {
     private readonly messageQueueService: MessageQueueService,
   ) {}
 
-  @OnEvent('person.created')
+  @OnDatabaseEvent('person', DatabaseEventAction.CREATED)
   async handleCreatedEvent(
     payload: WorkspaceEventBatch<
       ObjectRecordCreateEvent<PersonWorkspaceEntity>
     >,
   ) {
     for (const eventPayload of payload.events) {
-      if (
-        eventPayload.properties.after.emails?.primaryEmail === null &&
-        eventPayload.properties.after.email === null
-      ) {
+      if (eventPayload.properties.after.emails?.primaryEmail === null) {
         continue;
       }
 
@@ -44,16 +42,14 @@ export class CalendarEventParticipantPersonListener {
         CalendarEventParticipantMatchParticipantJob.name,
         {
           workspaceId: payload.workspaceId,
-          email:
-            eventPayload.properties.after.emails?.primaryEmail ??
-            eventPayload.properties.after.email, // TODO
+          email: eventPayload.properties.after.emails?.primaryEmail,
           personId: eventPayload.recordId,
         },
       );
     }
   }
 
-  @OnEvent('person.updated')
+  @OnDatabaseEvent('person', DatabaseEventAction.UPDATED)
   async handleUpdatedEvent(
     payload: WorkspaceEventBatch<
       ObjectRecordUpdateEvent<PersonWorkspaceEntity>
@@ -64,16 +60,14 @@ export class CalendarEventParticipantPersonListener {
         objectRecordUpdateEventChangedProperties(
           eventPayload.properties.before,
           eventPayload.properties.after,
-        ).includes('email')
+        ).includes('emails')
       ) {
         // TODO: modify this job to take an array of participants to match
         await this.messageQueueService.add<CalendarEventParticipantUnmatchParticipantJobData>(
           CalendarEventParticipantUnmatchParticipantJob.name,
           {
             workspaceId: payload.workspaceId,
-            email:
-              eventPayload.properties.before.emails?.primaryEmail ??
-              eventPayload.properties.before.email,
+            email: eventPayload.properties.before.emails?.primaryEmail,
             personId: eventPayload.recordId,
           },
         );
@@ -82,9 +76,7 @@ export class CalendarEventParticipantPersonListener {
           CalendarEventParticipantMatchParticipantJob.name,
           {
             workspaceId: payload.workspaceId,
-            email:
-              eventPayload.properties.after.emails?.primaryEmail ??
-              eventPayload.properties.after.email,
+            email: eventPayload.properties.after.emails?.primaryEmail,
             personId: eventPayload.recordId,
           },
         );

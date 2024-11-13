@@ -1,3 +1,7 @@
+import {
+  WorkflowActionType,
+  WorkflowTriggerType,
+} from '@/workflow/types/Workflow';
 import { Edge, Node } from '@xyflow/react';
 
 export type WorkflowDiagramNode = Node<WorkflowDiagramNodeData>;
@@ -8,10 +12,17 @@ export type WorkflowDiagram = {
   edges: Array<WorkflowDiagramEdge>;
 };
 
-export type WorkflowDiagramStepNodeData = {
-  nodeType: 'trigger' | 'condition' | 'action';
-  label: string;
-};
+export type WorkflowDiagramStepNodeData =
+  | {
+      nodeType: 'trigger';
+      triggerType: WorkflowTriggerType;
+      label: string;
+    }
+  | {
+      nodeType: 'action';
+      actionType: WorkflowActionType;
+      label: string;
+    };
 
 export type WorkflowDiagramCreateStepNodeData = {
   nodeType: 'create-step';
@@ -21,3 +32,8 @@ export type WorkflowDiagramCreateStepNodeData = {
 export type WorkflowDiagramNodeData =
   | WorkflowDiagramStepNodeData
   | WorkflowDiagramCreateStepNodeData;
+
+export type WorkflowDiagramNodeType =
+  | 'default'
+  | 'empty-trigger'
+  | 'create-step';

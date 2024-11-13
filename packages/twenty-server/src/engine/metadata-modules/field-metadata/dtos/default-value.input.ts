@@ -71,16 +71,6 @@ export class FieldMetadataDefaultValueDate {
   value: Date | null;
 }
 
-export class FieldMetadataDefaultValueLink {
-  @ValidateIf((object, value) => value !== null)
-  @IsQuotedString()
-  label: string | null;
-
-  @ValidateIf((object, value) => value !== null)
-  @IsQuotedString()
-  url: string | null;
-}
-
 export class FieldMetadataDefaultValueCurrency {
   @ValidateIf((object, value) => value !== null)
   @IsNumberString()
@@ -198,4 +188,10 @@ export class FieldMetadataDefaultValuePhones {
   @ValidateIf((_object, value) => value !== null)
   @IsObject()
   additionalPhones: object | null;
+}
+
+export class FieldMetadataDefaultArray {
+  @ValidateIf((_object, value) => value !== null)
+  @IsArray()
+  value: string[] | null;
 }

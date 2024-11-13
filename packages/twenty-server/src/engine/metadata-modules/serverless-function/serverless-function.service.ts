@@ -1,21 +1,27 @@
 import { Injectable } from '@nestjs/common';
 import { InjectRepository } from '@nestjs/typeorm';
 
-import { TypeOrmQueryService } from '@ptc-org/nestjs-query-typeorm';
-import { FileUpload } from 'graphql-upload';
+import { basename, dirname, join } from 'path';
+
+import deepEqual from 'deep-equal';
 import { Repository } from 'typeorm';
 
 import { FileStorageExceptionCode } from 'src/engine/core-modules/file-storage/interfaces/file-storage-exception';
 import { ServerlessExecuteResult } from 'src/engine/core-modules/serverless/drivers/interfaces/serverless-driver.interface';
 
-import { ThrottlerService } from 'src/engine/core-modules/throttler/throttler.service';
+import { AnalyticsService } from 'src/engine/core-modules/analytics/analytics.service';
 import { EnvironmentService } from 'src/engine/core-modules/environment/environment.service';
 import { FileStorageService } from 'src/engine/core-modules/file-storage/file-storage.service';
 import { readFileContent } from 'src/engine/core-modules/file-storage/utils/read-file-content';
-import { SOURCE_FILE_NAME } from 'src/engine/core-modules/serverless/drivers/constants/source-file-name';
+import { ENV_FILE_NAME } from 'src/engine/core-modules/serverless/drivers/constants/env-file-name';
+import { INDEX_FILE_NAME } from 'src/engine/core-modules/serverless/drivers/constants/index-file-name';
+import { LAST_LAYER_VERSION } from 'src/engine/core-modules/serverless/drivers/layers/last-layer-version';
+import { getBaseTypescriptProjectFiles } from 'src/engine/core-modules/serverless/drivers/utils/get-base-typescript-project-files';
+import { getLastLayerDependencies } from 'src/engine/core-modules/serverless/drivers/utils/get-last-layer-dependencies';
 import { ServerlessService } from 'src/engine/core-modules/serverless/serverless.service';
 import { getServerlessFolder } from 'src/engine/core-modules/serverless/utils/serverless-get-folder.utils';
-import { CreateServerlessFunctionFromFileInput } from 'src/engine/metadata-modules/serverless-function/dtos/create-serverless-function-from-file.input';
+import { ThrottlerService } from 'src/engine/core-modules/throttler/throttler.service';
+import { CreateServerlessFunctionInput } from 'src/engine/metadata-modules/serverless-function/dtos/create-serverless-function.input';
 import { UpdateServerlessFunctionInput } from 'src/engine/metadata-modules/serverless-function/dtos/update-serverless-function.input';
 import {
   ServerlessFunctionEntity,
@@ -25,13 +31,10 @@ import {
   ServerlessFunctionException,
   ServerlessFunctionExceptionCode,
 } from 'src/engine/metadata-modules/serverless-function/serverless-function.exception';
-import { serverlessFunctionCreateHash } from 'src/engine/metadata-modules/serverless-function/utils/serverless-function-create-hash.utils';
 import { isDefined } from 'src/utils/is-defined';
-import { getLastLayerDependencies } from 'src/engine/core-modules/serverless/drivers/utils/get-last-layer-dependencies';
-import { LAST_LAYER_VERSION } from 'src/engine/core-modules/serverless/drivers/layers/last-layer-version';
 
 @Injectable()
-export class ServerlessFunctionService extends TypeOrmQueryService<ServerlessFunctionEntity> {
+export class ServerlessFunctionService {
   constructor(
     private readonly fileStorageService: FileStorageService,
     private readonly serverlessService: ServerlessService,
@@ -39,21 +42,23 @@ export class ServerlessFunctionService extends TypeOrmQueryService<ServerlessFun
     private readonly serverlessFunctionRepository: Repository<ServerlessFunctionEntity>,
     private readonly throttlerService: ThrottlerService,
     private readonly environmentService: EnvironmentService,
-  ) {
-    super(serverlessFunctionRepository);
+    private readonly analyticsService: AnalyticsService,
+  ) {}
+
+  async findManyServerlessFunctions(where) {
+    return this.serverlessFunctionRepository.findBy(where);
   }
 
   async getServerlessFunctionSourceCode(
     workspaceId: string,
     id: string,
     version: string,
-  ) {
-    const serverlessFunction = await this.serverlessFunctionRepository.findOne({
-      where: {
+  ): Promise<{ [filePath: string]: string } | undefined> {
+    const serverlessFunction =
+      await this.serverlessFunctionRepository.findOneBy({
         id,
         workspaceId,
-      },
-    });
+      });
 
     if (!serverlessFunction) {
       throw new ServerlessFunctionException(
@@ -68,12 +73,20 @@ export class ServerlessFunctionService extends TypeOrmQueryService<ServerlessFun
         version,
       });
 
-      const fileStream = await this.fileStorageService.read({
-        folderPath,
-        filename: SOURCE_FILE_NAME,
+      const indexFileStream = await this.fileStorageService.read({
+        folderPath: join(folderPath, 'src'),
+        filename: INDEX_FILE_NAME,
       });
 
-      return await readFileContent(fileStream);
+      const envFileStream = await this.fileStorageService.read({
+        folderPath: folderPath,
+        filename: ENV_FILE_NAME,
+      });
+
+      return {
+        '.env': await readFileContent(envFileStream),
+        'src/index.ts': await readFileContent(indexFileStream),
+      };
     } catch (error) {
       if (error.code === FileStorageExceptionCode.FILE_NOT_FOUND) {
         return;
@@ -90,12 +103,12 @@ export class ServerlessFunctionService extends TypeOrmQueryService<ServerlessFun
   ): Promise<ServerlessExecuteResult> {
     await this.throttleExecution(workspaceId);
 
-    const functionToExecute = await this.serverlessFunctionRepository.findOne({
-      where: {
+    const functionToExecute = await this.serverlessFunctionRepository.findOneBy(
+      {
         id,
         workspaceId,
       },
-    });
+    );
 
     if (!functionToExecute) {
       throw new ServerlessFunctionException(
@@ -104,14 +117,36 @@ export class ServerlessFunctionService extends TypeOrmQueryService<ServerlessFun
       );
     }
 
-    return this.serverlessService.execute(functionToExecute, payload, version);
+    const resultServerlessFunction = await this.serverlessService.execute(
+      functionToExecute,
+      payload,
+      version,
+    );
+    const eventInput = {
+      action: 'serverlessFunction.executed',
+      payload: {
+        duration: resultServerlessFunction.duration,
+        status: resultServerlessFunction.status,
+        ...(resultServerlessFunction.error && {
+          errorType: resultServerlessFunction.error.errorType,
+        }),
+        functionId: functionToExecute.id,
+        functionName: functionToExecute.name,
+      },
+    };
+
+    this.analyticsService.create(
+      eventInput,
+      'serverless-function',
+      workspaceId,
+    );
+
+    return resultServerlessFunction;
   }
 
   async publishOneServerlessFunction(id: string, workspaceId: string) {
     const existingServerlessFunction =
-      await this.serverlessFunctionRepository.findOne({
-        where: { id, workspaceId },
-      });
+      await this.serverlessFunctionRepository.findOneBy({ id, workspaceId });
 
     if (!existingServerlessFunction) {
       throw new ServerlessFunctionException(
@@ -132,10 +167,7 @@ export class ServerlessFunctionService extends TypeOrmQueryService<ServerlessFun
         'draft',
       );
 
-      if (
-        serverlessFunctionCreateHash(latestCode || '') ===
-        serverlessFunctionCreateHash(draftCode || '')
-      ) {
+      if (deepEqual(latestCode, draftCode)) {
         throw new Error(
           'Cannot publish a new version when code has not changed',
         );
@@ -146,31 +178,29 @@ export class ServerlessFunctionService extends TypeOrmQueryService<ServerlessFun
       existingServerlessFunction,
     );
 
-    const draftFolderPath = getServerlessFolder({
-      serverlessFunction: existingServerlessFunction,
-      version: 'draft',
-    });
-    const newFolderPath = getServerlessFolder({
-      serverlessFunction: existingServerlessFunction,
-      version: newVersion,
-    });
+    const newPublishedVersions = [
+      ...existingServerlessFunction.publishedVersions,
+      newVersion,
+    ];
 
-    await this.fileStorageService.copy({
-      from: { folderPath: draftFolderPath },
-      to: { folderPath: newFolderPath },
-    });
+    await this.serverlessFunctionRepository.update(
+      existingServerlessFunction.id,
+      {
+        latestVersion: newVersion,
+        publishedVersions: newPublishedVersions,
+      },
+    );
 
-    await super.updateOne(existingServerlessFunction.id, {
-      latestVersion: newVersion,
+    return this.serverlessFunctionRepository.findOneBy({
+      id: existingServerlessFunction.id,
     });
-
-    return await this.findById(existingServerlessFunction.id);
   }
 
   async deleteOneServerlessFunction(id: string, workspaceId: string) {
     const existingServerlessFunction =
-      await this.serverlessFunctionRepository.findOne({
-        where: { id, workspaceId },
+      await this.serverlessFunctionRepository.findOneBy({
+        id,
+        workspaceId,
       });
 
     if (!existingServerlessFunction) {
@@ -180,7 +210,7 @@ export class ServerlessFunctionService extends TypeOrmQueryService<ServerlessFun
       );
     }
 
-    await super.deleteOne(id);
+    await this.serverlessFunctionRepository.delete(id);
 
     await this.serverlessService.delete(existingServerlessFunction);
 
@@ -198,8 +228,9 @@ export class ServerlessFunctionService extends TypeOrmQueryService<ServerlessFun
     workspaceId: string,
   ) {
     const existingServerlessFunction =
-      await this.serverlessFunctionRepository.findOne({
-        where: { id: serverlessFunctionInput.id, workspaceId },
+      await this.serverlessFunctionRepository.findOneBy({
+        id: serverlessFunctionInput.id,
+        workspaceId,
       });
 
     if (!existingServerlessFunction) {
@@ -209,33 +240,40 @@ export class ServerlessFunctionService extends TypeOrmQueryService<ServerlessFun
       );
     }
 
-    await super.updateOne(existingServerlessFunction.id, {
-      name: serverlessFunctionInput.name,
-      description: serverlessFunctionInput.description,
-      syncStatus: ServerlessFunctionSyncStatus.NOT_READY,
-      sourceCodeHash: serverlessFunctionCreateHash(
-        serverlessFunctionInput.code,
-      ),
-    });
+    await this.serverlessFunctionRepository.update(
+      existingServerlessFunction.id,
+      {
+        name: serverlessFunctionInput.name,
+        description: serverlessFunctionInput.description,
+        syncStatus: ServerlessFunctionSyncStatus.NOT_READY,
+      },
+    );
 
     const fileFolder = getServerlessFolder({
       serverlessFunction: existingServerlessFunction,
       version: 'draft',
     });
 
-    await this.fileStorageService.write({
-      file: serverlessFunctionInput.code,
-      name: SOURCE_FILE_NAME,
-      mimeType: undefined,
-      folder: fileFolder,
-    });
+    for (const key of Object.keys(serverlessFunctionInput.code)) {
+      await this.fileStorageService.write({
+        file: serverlessFunctionInput.code[key],
+        name: basename(key),
+        mimeType: undefined,
+        folder: join(fileFolder, dirname(key)),
+      });
+    }
 
     await this.serverlessService.build(existingServerlessFunction, 'draft');
-    await super.updateOne(existingServerlessFunction.id, {
-      syncStatus: ServerlessFunctionSyncStatus.READY,
-    });
+    await this.serverlessFunctionRepository.update(
+      existingServerlessFunction.id,
+      {
+        syncStatus: ServerlessFunctionSyncStatus.READY,
+      },
+    );
 
-    return await this.findById(existingServerlessFunction.id);
+    return this.serverlessFunctionRepository.findOneBy({
+      id: existingServerlessFunction.id,
+    });
   }
 
   async getAvailablePackages() {
@@ -259,40 +297,38 @@ export class ServerlessFunctionService extends TypeOrmQueryService<ServerlessFun
   }
 
   async createOneServerlessFunction(
-    serverlessFunctionInput: CreateServerlessFunctionFromFileInput,
-    code: FileUpload | string,
+    serverlessFunctionInput: CreateServerlessFunctionInput,
     workspaceId: string,
   ) {
-    let typescriptCode: string;
+    const serverlessFunctionToCreate =
+      await this.serverlessFunctionRepository.create({
+        ...serverlessFunctionInput,
+        workspaceId,
+        layerVersion: LAST_LAYER_VERSION,
+      });
 
-    if (typeof code === 'string') {
-      typescriptCode = code;
-    } else {
-      typescriptCode = await readFileContent(code.createReadStream());
-    }
-
-    const createdServerlessFunction = await super.createOne({
-      ...serverlessFunctionInput,
-      workspaceId,
-      sourceCodeHash: serverlessFunctionCreateHash(typescriptCode),
-      layerVersion: LAST_LAYER_VERSION,
-    });
+    const createdServerlessFunction =
+      await this.serverlessFunctionRepository.save(serverlessFunctionToCreate);
 
     const draftFileFolder = getServerlessFolder({
       serverlessFunction: createdServerlessFunction,
       version: 'draft',
     });
 
-    await this.fileStorageService.write({
-      file: typescriptCode,
-      name: SOURCE_FILE_NAME,
-      mimeType: undefined,
-      folder: draftFileFolder,
-    });
+    for (const file of await getBaseTypescriptProjectFiles) {
+      await this.fileStorageService.write({
+        file: file.content,
+        name: file.name,
+        mimeType: undefined,
+        folder: join(draftFileFolder, file.path),
+      });
+    }
 
     await this.serverlessService.build(createdServerlessFunction, 'draft');
 
-    return await this.findById(createdServerlessFunction.id);
+    return this.serverlessFunctionRepository.findOneBy({
+      id: createdServerlessFunction.id,
+    });
   }
 
   private async throttleExecution(workspaceId: string) {

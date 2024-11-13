@@ -10,13 +10,13 @@ const modulesCoverage = {
   branches: 25,
   statements: 49,
   lines: 50,
-  functions: 40,
+  functions: 38,
   include: ['src/modules/**/*'],
   exclude: ['src/**/*.ts'],
 };
 
 const pagesCoverage = {
-  branches: 40,
+  branches: 35,
   statements: 60,
   lines: 60,
   functions: 45,

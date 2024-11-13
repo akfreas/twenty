@@ -1,8 +1,6 @@
 import styled from '@emotion/styled';
-import { IconChevronDown, IconPlus } from 'twenty-ui';
+import { Button, ButtonGroup, IconChevronDown, IconPlus } from 'twenty-ui';
 
-import { Button } from '@/ui/input/button/components/Button';
-import { ButtonGroup } from '@/ui/input/button/components/ButtonGroup';
 import { Dropdown } from '@/ui/layout/dropdown/components/Dropdown';
 import { DropdownMenuItemsContainer } from '@/ui/layout/dropdown/components/DropdownMenuItemsContainer';
 import { useDropdown } from '@/ui/layout/dropdown/hooks/useDropdown';
@@ -27,7 +25,9 @@ const StyledContainer = styled.div`
   margin-right: ${({ theme }) => theme.spacing(2)};
   position: relative;
 `;
-
+const StyledButton = styled(Button)`
+  padding: ${({ theme }) => theme.spacing(1)};
+`;
 export type UpdateViewButtonGroupProps = {
   hotkeyScope: HotkeyScope;
 };
@@ -99,7 +99,7 @@ export const UpdateViewButtonGroup = ({
             dropdownId={UPDATE_VIEW_BUTTON_DROPDOWN_ID}
             dropdownHotkeyScope={hotkeyScope}
             clickableComponent={
-              <Button
+              <StyledButton
                 size="small"
                 accent="blue"
                 Icon={IconChevronDown}

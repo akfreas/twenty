@@ -1,9 +1,9 @@
-import { Button } from '@/ui/input/button/components/Button';
 import { useActivateWorkflowVersion } from '@/workflow/hooks/useActivateWorkflowVersion';
 import { useDeactivateWorkflowVersion } from '@/workflow/hooks/useDeactivateWorkflowVersion';
 import { useDeleteOneWorkflowVersion } from '@/workflow/hooks/useDeleteOneWorkflowVersion';
 import { useWorkflowWithCurrentVersion } from '@/workflow/hooks/useWorkflowWithCurrentVersion';
 import {
+  Button,
   IconPlayerPlay,
   IconPlayerStop,
   IconPower,
@@ -15,7 +15,7 @@ import { assertWorkflowWithCurrentVersionIsDefined } from '../utils/assertWorkfl
 export const RecordShowPageWorkflowHeader = ({
   workflowId,
 }: {
-  workflowId: string | undefined;
+  workflowId: string;
 }) => {
   const workflowWithCurrentVersion = useWorkflowWithCurrentVersion(workflowId);
 
@@ -50,7 +50,6 @@ export const RecordShowPageWorkflowHeader = ({
             );
 
             return deleteOneWorkflowVersion({
-              workflowId: workflowWithCurrentVersion.id,
               workflowVersionId: workflowWithCurrentVersion.currentVersion.id,
             });
           }}
@@ -69,9 +68,10 @@ export const RecordShowPageWorkflowHeader = ({
               workflowWithCurrentVersion,
             );
 
-            return activateWorkflowVersion(
-              workflowWithCurrentVersion.currentVersion.id,
-            );
+            return activateWorkflowVersion({
+              workflowVersionId: workflowWithCurrentVersion.currentVersion.id,
+              workflowId: workflowWithCurrentVersion.id,
+            });
           }}
         />
       ) : workflowWithCurrentVersion?.currentVersion?.status === 'ACTIVE' ? (

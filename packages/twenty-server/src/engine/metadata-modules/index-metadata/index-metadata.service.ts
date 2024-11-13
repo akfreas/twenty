@@ -1,10 +1,14 @@
 import { Injectable } from '@nestjs/common';
 import { InjectRepository } from '@nestjs/typeorm';
 
+import { isDefined } from 'class-validator';
 import { Repository } from 'typeorm';
 
 import { FieldMetadataEntity } from 'src/engine/metadata-modules/field-metadata/field-metadata.entity';
-import { IndexMetadataEntity } from 'src/engine/metadata-modules/index-metadata/index-metadata.entity';
+import {
+  IndexMetadataEntity,
+  IndexType,
+} from 'src/engine/metadata-modules/index-metadata/index-metadata.entity';
 import { generateDeterministicIndexName } from 'src/engine/metadata-modules/index-metadata/utils/generate-deterministic-index-name';
 import { ObjectMetadataEntity } from 'src/engine/metadata-modules/object-metadata/object-metadata.entity';
 import { generateMigrationName } from 'src/engine/metadata-modules/workspace-migration/utils/generate-migration-name.util';
@@ -24,10 +28,14 @@ export class IndexMetadataService {
     private readonly workspaceMigrationService: WorkspaceMigrationService,
   ) {}
 
-  async createIndex(
+  async createIndexMetadata(
     workspaceId: string,
     objectMetadata: ObjectMetadataEntity,
     fieldMetadataToIndex: Partial<FieldMetadataEntity>[],
+    isUnique: boolean,
+    isCustom: boolean,
+    indexType?: IndexType,
+    indexWhereClause?: string,
   ) {
     const tableName = computeObjectTargetTable(objectMetadata);
 
@@ -37,22 +45,35 @@ export class IndexMetadataService {
 
     const indexName = `IDX_${generateDeterministicIndexName([tableName, ...columnNames])}`;
 
-    let savedIndexMetadata: IndexMetadataEntity;
+    let result: IndexMetadataEntity;
+
+    const existingIndex = await this.indexMetadataRepository.findOne({
+      where: {
+        name: indexName,
+        workspaceId,
+        objectMetadataId: objectMetadata.id,
+      },
+    });
+
+    if (existingIndex) {
+      throw new Error(
+        `Index ${indexName} on object metadata ${objectMetadata.nameSingular} already exists`,
+      );
+    }
 
     try {
-      savedIndexMetadata = await this.indexMetadataRepository.save({
+      result = await this.indexMetadataRepository.save({
         name: indexName,
-        tableName,
         indexFieldMetadatas: fieldMetadataToIndex.map(
-          (fieldMetadata, index) => {
-            return {
-              fieldMetadataId: fieldMetadata.id,
-              order: index,
-            };
-          },
+          (fieldMetadata, index) => ({
+            fieldMetadataId: fieldMetadata.id,
+            order: index,
+          }),
         ),
         workspaceId,
         objectMetadataId: objectMetadata.id,
+        ...(isDefined(indexType) ? { indexType } : {}),
+        isCustom,
       });
     } catch (error) {
       throw new Error(
@@ -60,11 +81,39 @@ export class IndexMetadataService {
       );
     }
 
-    if (!savedIndexMetadata) {
+    if (!result) {
       throw new Error(
         `Failed to return saved index ${indexName} on object metadata ${objectMetadata.nameSingular}`,
       );
     }
+
+    await this.createIndexCreationMigration(
+      workspaceId,
+      objectMetadata,
+      fieldMetadataToIndex,
+      isUnique,
+      isCustom,
+      indexType,
+      indexWhereClause,
+    );
+  }
+
+  async createIndexCreationMigration(
+    workspaceId: string,
+    objectMetadata: ObjectMetadataEntity,
+    fieldMetadataToIndex: Partial<FieldMetadataEntity>[],
+    isUnique: boolean,
+    isCustom: boolean,
+    indexType?: IndexType,
+    indexWhereClause?: string,
+  ) {
+    const tableName = computeObjectTargetTable(objectMetadata);
+
+    const columnNames: string[] = fieldMetadataToIndex.map(
+      (fieldMetadata) => fieldMetadata.name as string,
+    );
+
+    const indexName = `IDX_${generateDeterministicIndexName([tableName, ...columnNames])}`;
 
     const migration = {
       name: tableName,
@@ -74,6 +123,9 @@ export class IndexMetadataService {
           action: WorkspaceMigrationIndexActionType.CREATE,
           columns: columnNames,
           name: indexName,
+          isUnique,
+          where: indexWhereClause,
+          type: indexType,
         },
       ],
     } satisfies WorkspaceMigrationTableAction;

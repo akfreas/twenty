@@ -2,7 +2,7 @@ import { ObjectMetadataEntity } from 'src/engine/metadata-modules/object-metadat
 import { OPPORTUNITY_STANDARD_FIELD_IDS } from 'src/engine/workspace-manager/workspace-sync-metadata/constants/standard-field-ids';
 import { STANDARD_OBJECT_IDS } from 'src/engine/workspace-manager/workspace-sync-metadata/constants/standard-object-ids';
 
-export const opportunitiesByStageView = async (
+export const opportunitiesByStageView = (
   objectMetadataMap: Record<string, ObjectMetadataEntity>,
 ) => {
   return {
@@ -71,6 +71,53 @@ export const opportunitiesByStageView = async (
         position: 5,
         isVisible: true,
         size: 150,
+      },
+    ],
+    groups: [
+      {
+        fieldMetadataId:
+          objectMetadataMap[STANDARD_OBJECT_IDS.opportunity].fields[
+            OPPORTUNITY_STANDARD_FIELD_IDS.stage
+          ],
+        isVisible: true,
+        fieldValue: 'NEW',
+        position: 0,
+      },
+      {
+        fieldMetadataId:
+          objectMetadataMap[STANDARD_OBJECT_IDS.opportunity].fields[
+            OPPORTUNITY_STANDARD_FIELD_IDS.stage
+          ],
+        isVisible: true,
+        fieldValue: 'SCREENING',
+        position: 1,
+      },
+      {
+        fieldMetadataId:
+          objectMetadataMap[STANDARD_OBJECT_IDS.opportunity].fields[
+            OPPORTUNITY_STANDARD_FIELD_IDS.stage
+          ],
+        isVisible: true,
+        fieldValue: 'MEETING',
+        position: 2,
+      },
+      {
+        fieldMetadataId:
+          objectMetadataMap[STANDARD_OBJECT_IDS.opportunity].fields[
+            OPPORTUNITY_STANDARD_FIELD_IDS.stage
+          ],
+        isVisible: true,
+        fieldValue: 'PROPOSAL',
+        position: 3,
+      },
+      {
+        fieldMetadataId:
+          objectMetadataMap[STANDARD_OBJECT_IDS.opportunity].fields[
+            OPPORTUNITY_STANDARD_FIELD_IDS.stage
+          ],
+        isVisible: true,
+        fieldValue: 'CUSTOMER',
+        position: 4,
       },
     ],
   };

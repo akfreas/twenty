@@ -5,7 +5,7 @@ import {
 } from 'src/engine/workspace-manager/workspace-sync-metadata/constants/standard-field-ids';
 import { STANDARD_OBJECT_IDS } from 'src/engine/workspace-manager/workspace-sync-metadata/constants/standard-object-ids';
 
-export const tasksByStatusView = async (
+export const tasksByStatusView = (
   objectMetadataMap: Record<string, ObjectMetadataEntity>,
 ) => {
   return {
@@ -88,6 +88,35 @@ export const tasksByStatusView = async (
         size: 210,
       },
       */
+    ],
+    groups: [
+      {
+        fieldMetadataId:
+          objectMetadataMap[STANDARD_OBJECT_IDS.task].fields[
+            TASK_STANDARD_FIELD_IDS.status
+          ],
+        isVisible: true,
+        fieldValue: 'TODO',
+        position: 0,
+      },
+      {
+        fieldMetadataId:
+          objectMetadataMap[STANDARD_OBJECT_IDS.task].fields[
+            TASK_STANDARD_FIELD_IDS.status
+          ],
+        isVisible: true,
+        fieldValue: 'IN_PROGRESS',
+        position: 1,
+      },
+      {
+        fieldMetadataId:
+          objectMetadataMap[STANDARD_OBJECT_IDS.task].fields[
+            TASK_STANDARD_FIELD_IDS.status
+          ],
+        isVisible: true,
+        fieldValue: 'DONE',
+        position: 2,
+      },
     ],
   };
 };

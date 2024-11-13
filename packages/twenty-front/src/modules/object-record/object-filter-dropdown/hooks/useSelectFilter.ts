@@ -1,9 +1,11 @@
 import { useFilterDropdown } from '@/object-record/object-filter-dropdown/hooks/useFilterDropdown';
 import { FilterDefinition } from '@/object-record/object-filter-dropdown/types/FilterDefinition';
 import { getInitialFilterValue } from '@/object-record/object-filter-dropdown/utils/getInitialFilterValue';
-import { getOperandsForFilterType } from '@/object-record/object-filter-dropdown/utils/getOperandsForFilterType';
+import { getOperandsForFilterDefinition } from '@/object-record/object-filter-dropdown/utils/getOperandsForFilterType';
 import { RelationPickerHotkeyScope } from '@/object-record/relation-picker/types/RelationPickerHotkeyScope';
 import { useSetHotkeyScope } from '@/ui/utilities/hotkey/hooks/useSetHotkeyScope';
+import { useRecoilValue } from 'recoil';
+import { isDefined } from 'twenty-ui';
 import { v4 } from 'uuid';
 
 type SelectFilterParams = {
@@ -16,7 +18,16 @@ export const useSelectFilter = () => {
     setSelectedOperandInDropdown,
     setObjectFilterDropdownSearchInput,
     selectFilter: filterDropdownSelectFilter,
+    advancedFilterViewFilterGroupIdState,
+    advancedFilterViewFilterIdState,
   } = useFilterDropdown();
+
+  const advancedFilterViewFilterId = useRecoilValue(
+    advancedFilterViewFilterIdState,
+  );
+  const advancedFilterViewFilterGroupId = useRecoilValue(
+    advancedFilterViewFilterGroupIdState,
+  );
 
   const setHotkeyScope = useSetHotkeyScope();
 
@@ -31,22 +42,25 @@ export const useSelectFilter = () => {
     }
 
     setSelectedOperandInDropdown(
-      getOperandsForFilterType(filterDefinition.type)?.[0],
+      getOperandsForFilterDefinition(filterDefinition)[0],
     );
 
     const { value, displayValue } = getInitialFilterValue(
       filterDefinition.type,
-      getOperandsForFilterType(filterDefinition.type)?.[0],
+      getOperandsForFilterDefinition(filterDefinition)[0],
     );
 
-    if (value !== '') {
+    const isAdvancedFilter = isDefined(advancedFilterViewFilterId);
+
+    if (isAdvancedFilter || value !== '') {
       filterDropdownSelectFilter({
-        id: v4(),
+        id: advancedFilterViewFilterId ?? v4(),
         fieldMetadataId: filterDefinition.fieldMetadataId,
         displayValue,
-        operand: getOperandsForFilterType(filterDefinition.type)?.[0],
+        operand: getOperandsForFilterDefinition(filterDefinition)[0],
         value,
         definition: filterDefinition,
+        viewFilterGroupId: advancedFilterViewFilterGroupId,
       });
     }
 

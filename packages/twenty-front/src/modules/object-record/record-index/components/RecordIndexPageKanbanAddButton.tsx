@@ -1,24 +1,20 @@
+import { useObjectMetadataItem } from '@/object-metadata/hooks/useObjectMetadataItem';
 import { CoreObjectNameSingular } from '@/object-metadata/types/CoreObjectNameSingular';
 import { useRecordBoardStates } from '@/object-record/record-board/hooks/internal/useRecordBoardStates';
 import { useAddNewCard } from '@/object-record/record-board/record-board-column/hooks/useAddNewCard';
-import { RecordBoardColumnDefinition } from '@/object-record/record-board/types/RecordBoardColumnDefinition';
+import { useIsOpportunitiesCompanyFieldDisabled } from '@/object-record/record-board/record-board-column/hooks/useIsOpportunitiesCompanyFieldDisabled';
+import { RecordGroupDefinition } from '@/object-record/record-group/types/RecordGroupDefinition';
 import { RecordIndexPageKanbanAddMenuItem } from '@/object-record/record-index/components/RecordIndexPageKanbanAddMenuItem';
 import { RecordIndexRootPropsContext } from '@/object-record/record-index/contexts/RecordIndexRootPropsContext';
-import { useRecordIndexPageKanbanAddButton } from '@/object-record/record-index/hooks/useRecordIndexPageKanbanAddButton';
-import { SingleEntitySelect } from '@/object-record/relation-picker/components/SingleEntitySelect';
-import { useEntitySelectSearch } from '@/object-record/relation-picker/hooks/useEntitySelectSearch';
-import { EntityForSelect } from '@/object-record/relation-picker/types/EntityForSelect';
-import { RelationPickerHotkeyScope } from '@/object-record/relation-picker/types/RelationPickerHotkeyScope';
-import { IconButton } from '@/ui/input/button/components/IconButton';
+import { recordIndexKanbanFieldMetadataIdState } from '@/object-record/record-index/states/recordIndexKanbanFieldMetadataIdState';
 import { Dropdown } from '@/ui/layout/dropdown/components/Dropdown';
 import { DropdownMenu } from '@/ui/layout/dropdown/components/DropdownMenu';
 import { DropdownMenuItemsContainer } from '@/ui/layout/dropdown/components/DropdownMenuItemsContainer';
 import { useDropdown } from '@/ui/layout/dropdown/hooks/useDropdown';
-import { usePreviousHotkeyScope } from '@/ui/utilities/hotkey/hooks/usePreviousHotkeyScope';
 import styled from '@emotion/styled';
-import { useCallback, useContext, useState } from 'react';
+import { useCallback, useContext } from 'react';
 import { useRecoilValue } from 'recoil';
-import { IconPlus, isDefined } from 'twenty-ui';
+import { IconButton, IconPlus } from 'twenty-ui';
 
 const StyledDropdownMenuItemsContainer = styled(DropdownMenuItemsContainer)`
   width: 100%;
@@ -30,13 +26,21 @@ const StyledDropDownMenu = styled(DropdownMenu)`
 
 export const RecordIndexPageKanbanAddButton = () => {
   const dropdownId = `record-index-page-add-button-dropdown`;
-  const [isSelectingCompany, setIsSelectingCompany] = useState(false);
-  const [selectedColumnDefinition, setSelectedColumnDefinition] =
-    useState<RecordBoardColumnDefinition>();
 
-  const { recordIndexId, objectNamePlural } = useContext(
+  const { recordIndexId, objectNameSingular } = useContext(
     RecordIndexRootPropsContext,
   );
+  const { objectMetadataItem } = useObjectMetadataItem({ objectNameSingular });
+
+  const recordIndexKanbanFieldMetadataId = useRecoilValue(
+    recordIndexKanbanFieldMetadataIdState,
+  );
+
+  const selectFieldMetadataItem = objectMetadataItem.fields.find(
+    (field) => field.id === recordIndexKanbanFieldMetadataId,
+  );
+  const isOpportunity =
+    objectMetadataItem.nameSingular === CoreObjectNameSingular.Opportunity;
 
   const { columnIdsState, visibleFieldDefinitionsState } =
     useRecordBoardStates(recordIndexId);
@@ -48,73 +52,32 @@ export const RecordIndexPageKanbanAddButton = () => {
     (field) => field.isLabelIdentifier,
   );
 
-  const {
-    setHotkeyScopeAndMemorizePreviousScope,
-    goBackToPreviousHotkeyScope,
-  } = usePreviousHotkeyScope();
-  const { resetSearchFilter } = useEntitySelectSearch({
-    relationPickerScopeId: 'relation-picker',
-  });
-
   const { closeDropdown } = useDropdown(dropdownId);
-
-  const { selectFieldMetadataItem, isOpportunity, createOpportunity } =
-    useRecordIndexPageKanbanAddButton({
-      objectNamePlural,
-    });
-
+  const { isOpportunitiesCompanyFieldDisabled } =
+    useIsOpportunitiesCompanyFieldDisabled();
   const { handleAddNewCardClick } = useAddNewCard();
 
   const handleItemClick = useCallback(
-    (columnDefinition: RecordBoardColumnDefinition) => {
-      if (isOpportunity) {
-        setIsSelectingCompany(true);
-        setSelectedColumnDefinition(columnDefinition);
-        setHotkeyScopeAndMemorizePreviousScope(
-          RelationPickerHotkeyScope.RelationPicker,
-        );
-      } else {
-        handleAddNewCardClick(
-          labelIdentifierField?.label ?? '',
-          '',
-          'first',
-          columnDefinition.id,
-        );
-        closeDropdown();
-      }
+    (columnDefinition: RecordGroupDefinition) => {
+      const isOpportunityEnabled =
+        isOpportunity && !isOpportunitiesCompanyFieldDisabled;
+      handleAddNewCardClick(
+        labelIdentifierField?.label ?? '',
+        '',
+        'first',
+        isOpportunityEnabled,
+        columnDefinition.id,
+      );
+      closeDropdown();
     },
     [
       isOpportunity,
       handleAddNewCardClick,
-      setHotkeyScopeAndMemorizePreviousScope,
       closeDropdown,
       labelIdentifierField,
+      isOpportunitiesCompanyFieldDisabled,
     ],
   );
-  const handleEntitySelect = useCallback(
-    (company?: EntityForSelect) => {
-      setIsSelectingCompany(false);
-      goBackToPreviousHotkeyScope();
-      resetSearchFilter();
-      if (isDefined(company) && isDefined(selectedColumnDefinition)) {
-        createOpportunity(company, selectedColumnDefinition);
-      }
-      closeDropdown();
-    },
-    [
-      createOpportunity,
-      goBackToPreviousHotkeyScope,
-      resetSearchFilter,
-      selectedColumnDefinition,
-      closeDropdown,
-    ],
-  );
-
-  const handleCancel = useCallback(() => {
-    resetSearchFilter();
-    goBackToPreviousHotkeyScope();
-    setIsSelectingCompany(false);
-  }, [goBackToPreviousHotkeyScope, resetSearchFilter]);
 
   if (!selectFieldMetadataItem) {
     return null;
@@ -137,27 +100,16 @@ export const RecordIndexPageKanbanAddButton = () => {
       dropdownId={dropdownId}
       dropdownComponents={
         <StyledDropDownMenu>
-          {isOpportunity && isSelectingCompany ? (
-            <SingleEntitySelect
-              disableBackgroundBlur
-              onCancel={handleCancel}
-              onEntitySelected={handleEntitySelect}
-              relationObjectNameSingular={CoreObjectNameSingular.Company}
-              relationPickerScopeId="relation-picker"
-              selectedRelationRecordIds={[]}
-            />
-          ) : (
-            <StyledDropdownMenuItemsContainer>
-              {columnIds.map((columnId) => (
-                <RecordIndexPageKanbanAddMenuItem
-                  key={columnId}
-                  columnId={columnId}
-                  recordIndexId={recordIndexId}
-                  onItemClick={handleItemClick}
-                />
-              ))}
-            </StyledDropdownMenuItemsContainer>
-          )}
+          <StyledDropdownMenuItemsContainer>
+            {columnIds.map((columnId) => (
+              <RecordIndexPageKanbanAddMenuItem
+                key={columnId}
+                columnId={columnId}
+                recordIndexId={recordIndexId}
+                onItemClick={handleItemClick}
+              />
+            ))}
+          </StyledDropdownMenuItemsContainer>
         </StyledDropDownMenu>
       }
       dropdownHotkeyScope={{ scope: dropdownId }}

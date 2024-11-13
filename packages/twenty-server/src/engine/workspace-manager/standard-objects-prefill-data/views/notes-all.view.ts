@@ -5,7 +5,7 @@ import {
 } from 'src/engine/workspace-manager/workspace-sync-metadata/constants/standard-field-ids';
 import { STANDARD_OBJECT_IDS } from 'src/engine/workspace-manager/workspace-sync-metadata/constants/standard-object-ids';
 
-export const notesAllView = async (
+export const notesAllView = (
   objectMetadataMap: Record<string, ObjectMetadataEntity>,
 ) => {
   return {
@@ -67,7 +67,7 @@ export const notesAllView = async (
       TODO: Add later, since we don't have real-time it probably doesn't work well?
       {
         fieldMetadataId:
-          objectMetadataMap[STANDARD_OBJECT_IDS.activity].fields[
+          objectMetadataMap[STANDARD_OBJECT_IDS.note].fields[
             BASE_OBJECT_STANDARD_FIELD_IDS.updatedAt
           ],
         position: 0,

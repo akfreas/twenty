@@ -1,17 +1,21 @@
 import styled from '@emotion/styled';
 import { useNavigate } from 'react-router-dom';
 import { useRecoilState, useRecoilValue } from 'recoil';
-import { IconDotsVertical, IconRestore, IconTrash } from 'twenty-ui';
+import {
+  IconButton,
+  IconDotsVertical,
+  IconRestore,
+  IconTrash,
+} from 'twenty-ui';
 
 import { useDeleteOneRecord } from '@/object-record/hooks/useDeleteOneRecord';
 import { PageHotkeyScope } from '@/types/PageHotkeyScope';
-import { IconButton } from '@/ui/input/button/components/IconButton';
 import { DropdownMenuItemsContainer } from '@/ui/layout/dropdown/components/DropdownMenuItemsContainer';
 import { useDropdown } from '@/ui/layout/dropdown/hooks/useDropdown';
 import { MenuItem } from '@/ui/navigation/menu-item/components/MenuItem';
 import { navigationMemorizedUrlState } from '@/ui/navigation/states/navigationMemorizedUrlState';
 
-import { useDestroyManyRecords } from '@/object-record/hooks/useDestroyManyRecords';
+import { useDestroyOneRecord } from '@/object-record/hooks/useDestroyOneRecord';
 import { useRestoreManyRecords } from '@/object-record/hooks/useRestoreManyRecords';
 import { recordStoreFamilyState } from '@/object-record/record-store/states/recordStoreFamilyState';
 import { Dropdown } from '../../dropdown/components/Dropdown';
@@ -35,7 +39,7 @@ export const ShowPageMoreButton = ({
   const { deleteOneRecord } = useDeleteOneRecord({
     objectNameSingular,
   });
-  const { destroyManyRecords } = useDestroyManyRecords({
+  const { destroyOneRecord } = useDestroyOneRecord({
     objectNameSingular,
   });
   const { restoreManyRecords } = useRestoreManyRecords({
@@ -45,11 +49,10 @@ export const ShowPageMoreButton = ({
   const handleDelete = () => {
     deleteOneRecord(recordId);
     closeDropdown();
-    navigate(navigationMemorizedUrl, { replace: true });
   };
 
   const handleDestroy = () => {
-    destroyManyRecords([recordId]);
+    destroyOneRecord(recordId);
     closeDropdown();
     navigate(navigationMemorizedUrl, { replace: true });
   };

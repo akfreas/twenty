@@ -8,6 +8,7 @@ import { currentViewIdComponentState } from '@/views/states/currentViewIdCompone
 import { unsavedToDeleteViewFilterIdsComponentFamilyState } from '@/views/states/unsavedToDeleteViewFilterIdsComponentFamilyState';
 import { unsavedToUpsertViewFiltersComponentFamilyState } from '@/views/states/unsavedToUpsertViewFiltersComponentFamilyState';
 import { ViewFilter } from '@/views/types/ViewFilter';
+import { shouldReplaceFilter } from '@/views/utils/shouldReplaceFilter';
 import { isDefined } from '~/utils/isDefined';
 
 export const useUpsertCombinedViewFilters = (viewBarComponentId?: string) => {
@@ -59,19 +60,16 @@ export const useUpsertCombinedViewFilters = (viewBarComponentId?: string) => {
         }
 
         const matchingFilterInCurrentView = currentView.viewFilters.find(
-          (viewFilter) =>
-            viewFilter.fieldMetadataId === upsertedFilter.fieldMetadataId,
+          (viewFilter) => shouldReplaceFilter(viewFilter, upsertedFilter),
         );
 
         const matchingFilterInUnsavedFilters = unsavedToUpsertViewFilters.find(
-          (viewFilter) =>
-            viewFilter.fieldMetadataId === upsertedFilter.fieldMetadataId,
+          (viewFilter) => shouldReplaceFilter(viewFilter, upsertedFilter),
         );
 
         if (isDefined(matchingFilterInUnsavedFilters)) {
           const updatedFilters = unsavedToUpsertViewFilters.map((viewFilter) =>
-            viewFilter.fieldMetadataId ===
-            matchingFilterInUnsavedFilters.fieldMetadataId
+            shouldReplaceFilter(viewFilter, matchingFilterInUnsavedFilters)
               ? { ...viewFilter, ...upsertedFilter, id: viewFilter.id }
               : viewFilter,
           );
@@ -106,15 +104,18 @@ export const useUpsertCombinedViewFilters = (viewBarComponentId?: string) => {
           return;
         }
 
+        const newValue = [
+          ...unsavedToUpsertViewFilters,
+          {
+            ...upsertedFilter,
+            id: upsertedFilter.id,
+            __typename: 'ViewFilter',
+          } satisfies ViewFilter,
+        ] satisfies ViewFilter[];
+
         set(
           unsavedToUpsertViewFiltersCallbackState({ viewId: currentViewId }),
-          [
-            ...unsavedToUpsertViewFilters,
-            {
-              ...upsertedFilter,
-              __typename: 'ViewFilter',
-            } satisfies ViewFilter,
-          ],
+          newValue,
         );
       },
     [

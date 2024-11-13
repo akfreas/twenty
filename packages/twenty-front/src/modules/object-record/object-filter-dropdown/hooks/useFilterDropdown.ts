@@ -4,11 +4,17 @@ import { useFilterDropdownStates } from '@/object-record/object-filter-dropdown/
 import { useAvailableScopeIdOrThrow } from '@/ui/utilities/recoil-scope/scopes-internal/hooks/useAvailableScopeId';
 import { getSnapshotValue } from '@/ui/utilities/recoil-scope/utils/getSnapshotValue';
 
+import { objectFilterDropdownFilterIsSelectedComponentState } from '@/object-record/object-filter-dropdown/states/objectFilterDropdownFilterIsSelectedComponentState';
+import { objectFilterDropdownIsSelectingCompositeFieldComponentState } from '@/object-record/object-filter-dropdown/states/objectFilterDropdownIsSelectingCompositeFieldComponentState';
+import { useRecoilComponentCallbackStateV2 } from '@/ui/utilities/state/component-state/hooks/useRecoilComponentCallbackStateV2';
+import { useUpsertCombinedViewFilters } from '@/views/hooks/useUpsertCombinedViewFilters';
+import { isDefined } from 'twenty-ui';
 import { ObjectFilterDropdownScopeInternalContext } from '../scopes/scope-internal-context/ObjectFilterDropdownScopeInternalContext';
 import { Filter } from '../types/Filter';
 
 type UseFilterDropdownProps = {
   filterDropdownId?: string;
+  advancedFilterViewFilterId?: string;
 };
 
 export const useFilterDropdown = (props?: UseFilterDropdownProps) => {
@@ -27,7 +33,11 @@ export const useFilterDropdown = (props?: UseFilterDropdownProps) => {
     selectedFilterState,
     selectedOperandInDropdownState,
     onFilterSelectState,
+    advancedFilterViewFilterGroupIdState,
+    advancedFilterViewFilterIdState,
   } = useFilterDropdownStates(scopeId);
+
+  const { upsertCombinedViewFilter } = useUpsertCombinedViewFilters();
 
   const selectFilter = useRecoilCallback(
     ({ set, snapshot }) =>
@@ -35,9 +45,13 @@ export const useFilterDropdown = (props?: UseFilterDropdownProps) => {
         set(selectedFilterState, filter);
         const onFilterSelect = getSnapshotValue(snapshot, onFilterSelectState);
 
+        if (isDefined(filter)) {
+          upsertCombinedViewFilter(filter);
+        }
+
         onFilterSelect?.(filter);
       },
-    [selectedFilterState, onFilterSelectState],
+    [selectedFilterState, onFilterSelectState, upsertCombinedViewFilter],
   );
 
   const emptyFilterButKeepDefinition = useRecoilCallback(
@@ -54,6 +68,18 @@ export const useFilterDropdown = (props?: UseFilterDropdownProps) => {
     ],
   );
 
+  const setObjectFilterDropdownFilterIsSelectedCallbackState =
+    useRecoilComponentCallbackStateV2(
+      objectFilterDropdownFilterIsSelectedComponentState,
+      props?.filterDropdownId,
+    );
+
+  const setObjectFilterDropdownIsSelectingCompositeFieldCallbackState =
+    useRecoilComponentCallbackStateV2(
+      objectFilterDropdownIsSelectingCompositeFieldComponentState,
+      props?.filterDropdownId,
+    );
+
   const resetFilter = useRecoilCallback(
     ({ set }) =>
       () => {
@@ -62,6 +88,11 @@ export const useFilterDropdown = (props?: UseFilterDropdownProps) => {
         set(selectedFilterState, undefined);
         set(filterDefinitionUsedInDropdownState, null);
         set(selectedOperandInDropdownState, null);
+        set(setObjectFilterDropdownFilterIsSelectedCallbackState, false);
+        set(
+          setObjectFilterDropdownIsSelectingCompositeFieldCallbackState,
+          false,
+        );
       },
     [
       filterDefinitionUsedInDropdownState,
@@ -69,6 +100,8 @@ export const useFilterDropdown = (props?: UseFilterDropdownProps) => {
       objectFilterDropdownSelectedRecordIdsState,
       selectedFilterState,
       selectedOperandInDropdownState,
+      setObjectFilterDropdownFilterIsSelectedCallbackState,
+      setObjectFilterDropdownIsSelectingCompositeFieldCallbackState,
     ],
   );
 
@@ -95,6 +128,12 @@ export const useFilterDropdown = (props?: UseFilterDropdownProps) => {
     isObjectFilterDropdownUnfoldedState,
   );
   const setOnFilterSelect = useSetRecoilState(onFilterSelectState);
+  const setAdvancedFilterViewFilterGroupId = useSetRecoilState(
+    advancedFilterViewFilterGroupIdState,
+  );
+  const setAdvancedFilterViewFilterId = useSetRecoilState(
+    advancedFilterViewFilterIdState,
+  );
 
   return {
     scopeId,
@@ -110,6 +149,8 @@ export const useFilterDropdown = (props?: UseFilterDropdownProps) => {
     setIsObjectFilterDropdownOperandSelectUnfolded,
     setIsObjectFilterDropdownUnfolded,
     setOnFilterSelect,
+    setAdvancedFilterViewFilterGroupId,
+    setAdvancedFilterViewFilterId,
     emptyFilterButKeepDefinition,
     filterDefinitionUsedInDropdownState,
     objectFilterDropdownSearchInputState,
@@ -121,5 +162,7 @@ export const useFilterDropdown = (props?: UseFilterDropdownProps) => {
     selectedFilterState,
     selectedOperandInDropdownState,
     onFilterSelectState,
+    advancedFilterViewFilterGroupIdState,
+    advancedFilterViewFilterIdState,
   };
 };

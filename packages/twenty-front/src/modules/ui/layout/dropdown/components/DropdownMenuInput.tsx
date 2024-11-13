@@ -2,26 +2,25 @@ import { css } from '@emotion/react';
 import styled from '@emotion/styled';
 import { forwardRef, InputHTMLAttributes, ReactNode, useRef } from 'react';
 import 'react-phone-number-input/style.css';
-import { RGBA, TEXT_INPUT_STYLE } from 'twenty-ui';
+import { TEXT_INPUT_STYLE } from 'twenty-ui';
 
 import { useRegisterInputEvents } from '@/object-record/record-field/meta-types/input/hooks/useRegisterInputEvents';
 import { useCombinedRefs } from '~/hooks/useCombinedRefs';
 
-const StyledInput = styled.input<{ withRightComponent?: boolean }>`
+const StyledInput = styled.input<{
+  withRightComponent?: boolean;
+  hasError?: boolean;
+}>`
   ${TEXT_INPUT_STYLE}
 
-  border: 1px solid ${({ theme }) => theme.border.color.medium};
+  border: 1px solid ${({ theme, hasError }) =>
+    hasError ? theme.border.color.danger : theme.border.color.medium};
   border-radius: ${({ theme }) => theme.border.radius.sm};
   box-sizing: border-box;
   font-weight: ${({ theme }) => theme.font.weight.medium};
   height: 32px;
   position: relative;
   width: 100%;
-
-  &:focus {
-    border-color: ${({ theme }) => theme.color.blue};
-    box-shadow: 0px 0px 0px 3px ${({ theme }) => RGBA(theme.color.blue, 0.1)};
-  }
 
   ${({ withRightComponent }) =>
     withRightComponent &&
@@ -44,6 +43,11 @@ const StyledRightContainer = styled.div`
   transform: translateY(-50%);
 `;
 
+const StyledErrorDiv = styled.div`
+  color: ${({ theme }) => theme.color.red};
+  padding: 0 ${({ theme }) => theme.spacing(2)};
+`;
+
 type HTMLInputProps = InputHTMLAttributes<HTMLInputElement>;
 
 export type DropdownMenuInputProps = HTMLInputProps & {
@@ -60,6 +64,8 @@ export type DropdownMenuInputProps = HTMLInputProps & {
     autoFocus: HTMLInputProps['autoFocus'];
     placeholder: HTMLInputProps['placeholder'];
   }) => React.ReactNode;
+  error?: string | null;
+  hasError?: boolean;
 };
 
 export const DropdownMenuInput = forwardRef<
@@ -81,6 +87,8 @@ export const DropdownMenuInput = forwardRef<
       onTab,
       rightComponent,
       renderInput,
+      error = '',
+      hasError = false,
     },
     ref,
   ) => {
@@ -99,28 +107,32 @@ export const DropdownMenuInput = forwardRef<
     });
 
     return (
-      <StyledInputContainer className={className}>
-        {renderInput ? (
-          renderInput({
-            value,
-            onChange,
-            autoFocus,
-            placeholder,
-          })
-        ) : (
-          <StyledInput
-            autoFocus={autoFocus}
-            value={value}
-            placeholder={placeholder}
-            onChange={onChange}
-            ref={combinedRef}
-            withRightComponent={!!rightComponent}
-          />
-        )}
-        {!!rightComponent && (
-          <StyledRightContainer>{rightComponent}</StyledRightContainer>
-        )}
-      </StyledInputContainer>
+      <>
+        <StyledInputContainer className={className}>
+          {renderInput ? (
+            renderInput({
+              value,
+              onChange,
+              autoFocus,
+              placeholder,
+            })
+          ) : (
+            <StyledInput
+              hasError={hasError}
+              autoFocus={autoFocus}
+              value={value}
+              placeholder={placeholder}
+              onChange={onChange}
+              ref={combinedRef}
+              withRightComponent={!!rightComponent}
+            />
+          )}
+          {!!rightComponent && (
+            <StyledRightContainer>{rightComponent}</StyledRightContainer>
+          )}
+        </StyledInputContainer>
+        {error && <StyledErrorDiv>{error}</StyledErrorDiv>}
+      </>
     );
   },
 );

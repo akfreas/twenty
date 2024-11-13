@@ -15,6 +15,7 @@ import { WorkspaceIsSystem } from 'src/engine/twenty-orm/decorators/workspace-is
 import { WorkspaceJoinColumn } from 'src/engine/twenty-orm/decorators/workspace-join-column.decorator';
 import { WorkspaceRelation } from 'src/engine/twenty-orm/decorators/workspace-relation.decorator';
 import { FAVORITE_STANDARD_FIELD_IDS } from 'src/engine/workspace-manager/workspace-sync-metadata/constants/standard-field-ids';
+import { STANDARD_OBJECT_ICONS } from 'src/engine/workspace-manager/workspace-sync-metadata/constants/standard-object-icons';
 import { STANDARD_OBJECT_IDS } from 'src/engine/workspace-manager/workspace-sync-metadata/constants/standard-object-ids';
 import { CompanyWorkspaceEntity } from 'src/modules/company/standard-objects/company.workspace-entity';
 import { NoteWorkspaceEntity } from 'src/modules/note/standard-objects/note.workspace-entity';
@@ -22,6 +23,8 @@ import { OpportunityWorkspaceEntity } from 'src/modules/opportunity/standard-obj
 import { PersonWorkspaceEntity } from 'src/modules/person/standard-objects/person.workspace-entity';
 import { TaskWorkspaceEntity } from 'src/modules/task/standard-objects/task.workspace-entity';
 import { ViewWorkspaceEntity } from 'src/modules/view/standard-objects/view.workspace-entity';
+import { WorkflowRunWorkspaceEntity } from 'src/modules/workflow/common/standard-objects/workflow-run.workspace-entity';
+import { WorkflowVersionWorkspaceEntity } from 'src/modules/workflow/common/standard-objects/workflow-version.workspace-entity';
 import { WorkflowWorkspaceEntity } from 'src/modules/workflow/common/standard-objects/workflow.workspace-entity';
 import { WorkspaceMemberWorkspaceEntity } from 'src/modules/workspace-member/standard-objects/workspace-member.workspace-entity';
 
@@ -31,7 +34,7 @@ import { WorkspaceMemberWorkspaceEntity } from 'src/modules/workspace-member/sta
   labelSingular: 'Favorite',
   labelPlural: 'Favorites',
   description: 'A favorite',
-  icon: 'IconHeart',
+  icon: STANDARD_OBJECT_ICONS.favorite,
 })
 @WorkspaceIsNotAuditLogged()
 @WorkspaceIsSystem()
@@ -127,6 +130,48 @@ export class FavoriteWorkspaceEntity extends BaseWorkspaceEntity {
     featureFlag: FeatureFlagKey.IsWorkflowEnabled,
   })
   workflowId: string;
+
+  @WorkspaceRelation({
+    standardId: FAVORITE_STANDARD_FIELD_IDS.workflowVersion,
+    type: RelationMetadataType.MANY_TO_ONE,
+    label: 'Workflow',
+    description: 'Favorite workflow version',
+    icon: 'IconSettingsAutomation',
+    inverseSideTarget: () => WorkflowVersionWorkspaceEntity,
+    inverseSideFieldKey: 'favorites',
+  })
+  @WorkspaceGate({
+    featureFlag: FeatureFlagKey.IsWorkflowEnabled,
+  })
+  @WorkspaceIsNullable()
+  workflowVersion: Relation<WorkflowVersionWorkspaceEntity> | null;
+
+  @WorkspaceJoinColumn('workflowVersion')
+  @WorkspaceGate({
+    featureFlag: FeatureFlagKey.IsWorkflowEnabled,
+  })
+  workflowVersionId: string;
+
+  @WorkspaceRelation({
+    standardId: FAVORITE_STANDARD_FIELD_IDS.workflowRun,
+    type: RelationMetadataType.MANY_TO_ONE,
+    label: 'Workflow',
+    description: 'Favorite workflow run',
+    icon: 'IconSettingsAutomation',
+    inverseSideTarget: () => WorkflowRunWorkspaceEntity,
+    inverseSideFieldKey: 'favorites',
+  })
+  @WorkspaceGate({
+    featureFlag: FeatureFlagKey.IsWorkflowEnabled,
+  })
+  @WorkspaceIsNullable()
+  workflowRun: Relation<WorkflowRunWorkspaceEntity> | null;
+
+  @WorkspaceJoinColumn('workflowRun')
+  @WorkspaceGate({
+    featureFlag: FeatureFlagKey.IsWorkflowEnabled,
+  })
+  workflowRunId: string;
 
   @WorkspaceRelation({
     standardId: FAVORITE_STANDARD_FIELD_IDS.task,

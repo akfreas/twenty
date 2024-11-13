@@ -3,11 +3,13 @@ import styled from '@emotion/styled';
 import { motion } from 'framer-motion';
 import { useCallback, useContext } from 'react';
 import {
+  AnimatedEaseInOut,
   IconChevronDown,
   IconComponent,
   IconDotsVertical,
   IconTrash,
   IconUnlink,
+  LightIconButton,
 } from 'twenty-ui';
 
 import { useObjectMetadataItem } from '@/object-metadata/hooks/useObjectMetadataItem';
@@ -24,6 +26,7 @@ import {
 } from '@/object-record/record-field/contexts/FieldContext';
 import { usePersistField } from '@/object-record/record-field/hooks/usePersistField';
 import { FieldRelationMetadata } from '@/object-record/record-field/types/FieldMetadata';
+import { isFieldMetadataReadOnly } from '@/object-record/record-field/utils/isFieldMetadataReadOnly';
 import { RecordInlineCell } from '@/object-record/record-inline-cell/components/RecordInlineCell';
 import { PropertyBox } from '@/object-record/record-inline-cell/property-box/components/PropertyBox';
 import { InlineCellHotkeyScope } from '@/object-record/record-inline-cell/types/InlineCellHotkeyScope';
@@ -31,13 +34,11 @@ import { RecordDetailRecordsListItem } from '@/object-record/record-show/record-
 import { RecordValueSetterEffect } from '@/object-record/record-store/components/RecordValueSetterEffect';
 import { ObjectRecord } from '@/object-record/types/ObjectRecord';
 import { isFieldCellSupported } from '@/object-record/utils/isFieldCellSupported';
-import { LightIconButton } from '@/ui/input/button/components/LightIconButton';
 import { Dropdown } from '@/ui/layout/dropdown/components/Dropdown';
 import { DropdownMenuItemsContainer } from '@/ui/layout/dropdown/components/DropdownMenuItemsContainer';
 import { useDropdown } from '@/ui/layout/dropdown/hooks/useDropdown';
 import { DropdownScope } from '@/ui/layout/dropdown/scopes/DropdownScope';
 import { MenuItem } from '@/ui/navigation/menu-item/components/MenuItem';
-import { AnimatedEaseInOut } from '@/ui/utilities/animation/components/AnimatedEaseInOut';
 import { RelationDefinitionType } from '~/generated-metadata/graphql';
 
 const StyledListItem = styled(RecordDetailRecordsListItem)<{
@@ -180,6 +181,8 @@ export const RecordDetailRelationRecordsListItem = ({
     [isExpanded],
   );
 
+  const canEdit = !isFieldMetadataReadOnly(fieldDefinition.metadata);
+
   return (
     <>
       <RecordValueSetterEffect recordId={relationRecord.id} />
@@ -195,37 +198,39 @@ export const RecordDetailRelationRecordsListItem = ({
             accent="tertiary"
           />
         </StyledClickableZone>
-        <DropdownScope dropdownScopeId={dropdownScopeId}>
-          <Dropdown
-            dropdownId={dropdownScopeId}
-            dropdownPlacement="right-start"
-            clickableComponent={
-              <LightIconButton
-                className="displayOnHover"
-                Icon={IconDotsVertical}
-                accent="tertiary"
-              />
-            }
-            dropdownComponents={
-              <DropdownMenuItemsContainer>
-                <MenuItem
-                  LeftIcon={IconUnlink}
-                  text="Detach"
-                  onClick={handleDetach}
+        {canEdit && (
+          <DropdownScope dropdownScopeId={dropdownScopeId}>
+            <Dropdown
+              dropdownId={dropdownScopeId}
+              dropdownPlacement="right-start"
+              clickableComponent={
+                <LightIconButton
+                  className="displayOnHover"
+                  Icon={IconDotsVertical}
+                  accent="tertiary"
                 />
-                {!isAccountOwnerRelation && (
+              }
+              dropdownComponents={
+                <DropdownMenuItemsContainer>
                   <MenuItem
-                    LeftIcon={IconTrash}
-                    text="Delete"
-                    accent="danger"
-                    onClick={handleDelete}
+                    LeftIcon={IconUnlink}
+                    text="Detach"
+                    onClick={handleDetach}
                   />
-                )}
-              </DropdownMenuItemsContainer>
-            }
-            dropdownHotkeyScope={{ scope: dropdownScopeId }}
-          />
-        </DropdownScope>
+                  {!isAccountOwnerRelation && (
+                    <MenuItem
+                      LeftIcon={IconTrash}
+                      text="Delete"
+                      accent="danger"
+                      onClick={handleDelete}
+                    />
+                  )}
+                </DropdownMenuItemsContainer>
+              }
+              dropdownHotkeyScope={{ scope: dropdownScopeId }}
+            />
+          </DropdownScope>
+        )}
       </StyledListItem>
       <AnimatedEaseInOut isOpen={isExpanded}>
         <PropertyBox>

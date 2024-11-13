@@ -1,4 +1,5 @@
 import { WorkflowStep, WorkflowStepType } from '@/workflow/types/Workflow';
+import { assertUnreachable } from '@/workflow/utils/assertUnreachable';
 import { v4 } from 'uuid';
 
 export const getStepDefaultDefinition = (
@@ -14,7 +15,36 @@ export const getStepDefaultDefinition = (
         type: 'CODE',
         valid: false,
         settings: {
-          serverlessFunctionId: '',
+          input: {
+            serverlessFunctionId: '',
+            serverlessFunctionVersion: '',
+          },
+          outputSchema: {},
+          errorHandlingOptions: {
+            continueOnFailure: {
+              value: false,
+            },
+            retryOnFailure: {
+              value: false,
+            },
+          },
+        },
+      };
+    }
+    case 'SEND_EMAIL': {
+      return {
+        id: newStepId,
+        name: 'Send Email',
+        type: 'SEND_EMAIL',
+        valid: false,
+        settings: {
+          input: {
+            connectedAccountId: '',
+            email: '',
+            subject: '',
+            body: '',
+          },
+          outputSchema: {},
           errorHandlingOptions: {
             continueOnFailure: {
               value: false,
@@ -27,7 +57,7 @@ export const getStepDefaultDefinition = (
       };
     }
     default: {
-      throw new Error(`Unknown type: ${type}`);
+      return assertUnreachable(type, `Unknown type: ${type}`);
     }
   }
 };

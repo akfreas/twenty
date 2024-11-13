@@ -10,7 +10,7 @@ import { textfieldDefinition } from '@/object-record/record-field/__mocks__/fiel
 import { FieldContext } from '@/object-record/record-field/contexts/FieldContext';
 import { useUpsertRecord } from '@/object-record/record-table/record-table-cell/hooks/useUpsertRecord';
 import { TableHotkeyScope } from '@/object-record/record-table/types/TableHotkeyScope';
-import { generatedMockObjectMetadataItems } from '~/testing/mock-data/objectMetadataItems';
+import { generatedMockObjectMetadataItems } from '~/testing/mock-data/generatedMockObjectMetadataItems';
 
 const draftValue = 'updated Name';
 
@@ -39,15 +39,6 @@ const pendingRecordIdState = createState<string | null>({
   key: 'pendingRecordIdState',
   defaultValue: null,
 });
-jest.mock(
-  '@/object-record/record-table/hooks/internal/useRecordTableStates',
-  () => ({
-    __esModule: true,
-    useRecordTableStates: jest.fn(() => ({
-      pendingRecordIdState: pendingRecordIdState,
-    })),
-  }),
-);
 
 const createOneRecordMock = jest.fn();
 const updateOneRecordMock = jest.fn();
@@ -98,7 +89,11 @@ describe('useUpsertRecord', () => {
 
   it('calls update record if there is no pending record', async () => {
     const { result } = renderHook(
-      () => useUpsertRecord({ objectNameSingular: 'person' }),
+      () =>
+        useUpsertRecord({
+          objectNameSingular: 'person',
+          recordTableId: 'recordTableId',
+        }),
       {
         wrapper: ({ children }) =>
           Wrapper({
@@ -114,7 +109,6 @@ describe('useUpsertRecord', () => {
         updateOneRecordMock,
         'recordId',
         'name',
-        'recordTableId',
       );
     });
 
@@ -124,7 +118,11 @@ describe('useUpsertRecord', () => {
 
   it('calls update record if pending record is empty', async () => {
     const { result } = renderHook(
-      () => useUpsertRecord({ objectNameSingular: 'person' }),
+      () =>
+        useUpsertRecord({
+          objectNameSingular: 'person',
+          recordTableId: 'recordTableId',
+        }),
       {
         wrapper: ({ children }) =>
           Wrapper({
@@ -140,7 +138,6 @@ describe('useUpsertRecord', () => {
         updateOneRecordMock,
         'recordId',
         'name',
-        'recordTableId',
       );
     });
 

@@ -1,8 +1,6 @@
-import { ReactNode } from 'react';
 import styled from '@emotion/styled';
-import { OverflowingTextWithTooltip } from 'twenty-ui';
-
-import { Checkbox } from '@/ui/input/components/Checkbox';
+import { ReactNode } from 'react';
+import { Checkbox, OverflowingTextWithTooltip } from 'twenty-ui';
 
 import {
   StyledMenuItemBase,
@@ -22,7 +20,7 @@ type MenuItemMultiSelectAvatarProps = {
   avatar?: ReactNode;
   selected: boolean;
   isKeySelected?: boolean;
-  text: string;
+  text?: string;
   className?: string;
   onSelectChange?: (selected: boolean) => void;
 };

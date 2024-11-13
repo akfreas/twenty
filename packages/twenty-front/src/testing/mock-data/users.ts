@@ -26,6 +26,7 @@ type MockedUser = Pick<
   locale: string;
   defaultWorkspace: Workspace;
   workspaces: Array<{ workspace: Workspace }>;
+  workspaceMembers: WorkspaceMember[];
 };
 
 export const avatarUrl =
@@ -39,8 +40,10 @@ export const mockDefaultWorkspace: Workspace = {
   domainName: 'twenty.com',
   inviteHash: 'twenty.com-invite-hash',
   logo: workspaceLogoUrl,
+  isPublicInviteLinkEnabled: true,
   allowImpersonation: true,
   activationStatus: WorkspaceActivationStatus.Active,
+  hasValidEntrepriseKey: false,
   featureFlags: [
     {
       id: '1492de61-5018-4368-8923-4f1eeaf988c4',
@@ -107,6 +110,7 @@ export const mockedUserData: MockedUser = {
   defaultWorkspace: mockDefaultWorkspace,
   locale: 'en',
   workspaces: [{ workspace: mockDefaultWorkspace }],
+  workspaceMembers: [mockedWorkspaceMemberData],
   onboardingStatus: OnboardingStatus.Completed,
   userVars: {},
 };

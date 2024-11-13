@@ -28,10 +28,18 @@ import { RightDrawerHotkeyScope } from '../types/RightDrawerHotkeyScope';
 import { emitRightDrawerCloseEvent } from '@/ui/layout/right-drawer/utils/emitRightDrawerCloseEvent';
 import { RightDrawerRouter } from './RightDrawerRouter';
 
-const StyledContainer = styled(motion.div)`
+const StyledContainer = styled(motion.div)<{ isRightDrawerMinimized: boolean }>`
   background: ${({ theme }) => theme.background.primary};
-  border-left: 1px solid ${({ theme }) => theme.border.color.medium};
-  box-shadow: ${({ theme }) => theme.boxShadow.strong};
+  border-left: ${({ theme, isRightDrawerMinimized }) =>
+    isRightDrawerMinimized
+      ? `1px solid ${theme.border.color.strong}`
+      : `1px solid ${theme.border.color.medium}`};
+  border-top: ${({ theme, isRightDrawerMinimized }) =>
+    isRightDrawerMinimized ? `1px solid ${theme.border.color.strong}` : 'none'};
+  border-top-left-radius: ${({ theme, isRightDrawerMinimized }) =>
+    isRightDrawerMinimized ? theme.border.radius.md : '0'};
+  box-shadow: ${({ theme, isRightDrawerMinimized }) =>
+    isRightDrawerMinimized ? 'none' : theme.boxShadow.light};
   height: 100dvh;
   overflow-x: hidden;
   position: fixed;
@@ -39,6 +47,10 @@ const StyledContainer = styled(motion.div)`
   right: 0;
   top: 0;
   z-index: 100;
+
+  .modal-backdrop {
+    background: ${({ theme }) => theme.background.overlayTertiary};
+  }
 `;
 
 const StyledRightDrawer = styled.div`
@@ -157,6 +169,7 @@ export const RightDrawer = () => {
 
   return (
     <StyledContainer
+      isRightDrawerMinimized={isRightDrawerMinimized}
       animate={targetVariantForAnimation}
       variants={animationVariants}
       transition={{

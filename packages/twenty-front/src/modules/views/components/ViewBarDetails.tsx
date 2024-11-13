@@ -7,6 +7,7 @@ import { Filter } from '@/object-record/object-filter-dropdown/types/Filter';
 import { DropdownScope } from '@/ui/layout/dropdown/scopes/DropdownScope';
 import { useRecoilComponentFamilyValueV2 } from '@/ui/utilities/state/component-state/hooks/useRecoilComponentFamilyValueV2';
 import { useRecoilComponentValueV2 } from '@/ui/utilities/state/component-state/hooks/useRecoilComponentValueV2';
+import { AdvancedFilterDropdownButton } from '@/views/components/AdvancedFilterDropdownButton';
 import { EditableFilterDropdownButton } from '@/views/components/EditableFilterDropdownButton';
 import { EditableSortChip } from '@/views/components/EditableSortChip';
 import { ViewBarFilterEffect } from '@/views/components/ViewBarFilterEffect';
@@ -31,24 +32,26 @@ export type ViewBarDetailsProps = {
 
 const StyledBar = styled.div`
   align-items: center;
+  align-items: center;
+  border-top: 1px solid ${({ theme }) => theme.border.color.light};
   border-top: 1px solid ${({ theme }) => theme.border.color.light};
   display: flex;
   flex-direction: row;
-  min-height: 32px;
   justify-content: space-between;
-  z-index: 4;
+  min-height: 32px;
   padding-top: ${({ theme }) => theme.spacing(1)};
   padding-bottom: ${({ theme }) => theme.spacing(1)};
+  z-index: 4;
 `;
 
 const StyledChipcontainer = styled.div`
   align-items: center;
   display: flex;
   flex-direction: row;
+  overflow: scroll;
   gap: ${({ theme }) => theme.spacing(1)};
-  min-height: 32px;
-  margin-left: ${({ theme }) => theme.spacing(2)};
-  flex-wrap: wrap;
+  padding-top: ${({ theme }) => theme.spacing(1)};
+  z-index: 1;
 `;
 
 const StyledCancelButton = styled.button`
@@ -57,15 +60,8 @@ const StyledCancelButton = styled.button`
   color: ${({ theme }) => theme.font.color.tertiary};
   cursor: pointer;
   font-weight: ${({ theme }) => theme.font.weight.medium};
-  margin-left: auto;
-  margin-right: ${({ theme }) => theme.spacing(2)};
-  padding: ${(props) => {
-    const horiz = props.theme.spacing(2);
-    const vert = props.theme.spacing(1);
-    return `${vert} ${horiz} ${vert} ${horiz}`;
-  }};
   user-select: none;
-
+  margin-right: ${({ theme }) => theme.spacing(2)};
   &:hover {
     background-color: ${({ theme }) => theme.background.tertiary};
     border-radius: ${({ theme }) => theme.spacing(1)};
@@ -73,8 +69,10 @@ const StyledCancelButton = styled.button`
 `;
 
 const StyledFilterContainer = styled.div`
-  align-items: center;
   display: flex;
+  align-items: center;
+  flex: 1;
+  overflow-x: hidden;
 `;
 
 const StyledSeperatorContainer = styled.div`
@@ -140,11 +138,16 @@ export const ViewBarDetails = ({
 
     const otherViewFilters =
       currentViewWithCombinedFiltersAndSorts.viewFilters.filter(
-        (viewFilter) => viewFilter.variant && viewFilter.variant !== 'default',
+        (viewFilter) =>
+          viewFilter.variant &&
+          viewFilter.variant !== 'default' &&
+          !viewFilter.viewFilterGroupId,
       );
     const defaultViewFilters =
       currentViewWithCombinedFiltersAndSorts.viewFilters.filter(
-        (viewFilter) => !viewFilter.variant || viewFilter.variant === 'default',
+        (viewFilter) =>
+          (!viewFilter.variant || viewFilter.variant === 'default') &&
+          !viewFilter.viewFilterGroupId,
       );
 
     return {
@@ -168,6 +171,10 @@ export const ViewBarDetails = ({
   if (!shouldExpandViewBar) {
     return null;
   }
+
+  const showAdvancedFilterDropdownButton =
+    currentViewWithCombinedFiltersAndSorts?.viewFilterGroups &&
+    currentViewWithCombinedFiltersAndSorts?.viewFilterGroups.length > 0;
 
   return (
     <StyledBar>
@@ -202,6 +209,7 @@ export const ViewBarDetails = ({
                 <StyledSeperator />
               </StyledSeperatorContainer>
             )}
+          {showAdvancedFilterDropdownButton && <AdvancedFilterDropdownButton />}
           {mapViewFiltersToFilters(
             defaultViewFilters,
             availableFilterDefinitions,

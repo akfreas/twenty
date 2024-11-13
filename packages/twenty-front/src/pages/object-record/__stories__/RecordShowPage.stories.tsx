@@ -11,7 +11,6 @@ import { graphqlMocks } from '~/testing/graphqlMocks';
 import { getPeopleMock, peopleQueryResult } from '~/testing/mock-data/people';
 import { mockedWorkspaceMemberData } from '~/testing/mock-data/users';
 
-import { viewQueryResultMock } from '~/testing/mock-data/views';
 import { RecordShowPage } from '../RecordShowPage';
 
 const peopleMock = getPeopleMock();
@@ -41,32 +40,10 @@ const meta: Meta<PageDecoratorArgs> = {
             },
           });
         }),
-        graphql.query('FindManyActivityTargets', () => {
-          return HttpResponse.json({
-            data: {
-              activityTargets: {
-                edges: [],
-                pageInfo: {
-                  hasNextPage: false,
-                  startCursor: '',
-                  endCursor: '',
-                },
-                totalCount: 0,
-              },
-            },
-          });
-        }),
         graphql.query('FindOneworkspaceMember', () => {
           return HttpResponse.json({
             data: {
               workspaceMember: mockedWorkspaceMemberData,
-            },
-          });
-        }),
-        graphql.query('FindManyViews', () => {
-          return HttpResponse.json({
-            data: {
-              views: viewQueryResultMock,
             },
           });
         }),
