@@ -19,7 +19,7 @@ COPY ./packages/twenty-ui/package.json /app/packages/twenty-ui/
 COPY ./packages/twenty-front/package.json /app/packages/twenty-front/
 
 # Install all dependencies
-RUN yarn && yarn cache clean && npx nx reset && yarn up @akfreas/vgc-core@^1.0.x
+RUN yarn && yarn cache clean && npx nx reset && yarn up @akfreas/vgc-core@^1.1.x
 
 # Build the back
 FROM common-deps as twenty-server-build
