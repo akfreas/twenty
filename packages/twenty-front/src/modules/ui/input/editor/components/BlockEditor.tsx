@@ -42,6 +42,7 @@ const StyledEditor = styled.div`
   }
   & .bn-editor {
     padding-inline: 36px;
+    font-family: ${({ theme }) => theme.font.family};
   }
   & .bn-container .bn-drag-handle {
     width: 20px;

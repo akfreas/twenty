@@ -1,4 +1,5 @@
 import { Calendar } from '@/activities/calendar/components/Calendar';
+import { Checklist } from '@/activities/checklist/components/Checklist';
 import { EmailThreads } from '@/activities/emails/components/EmailThreads';
 import { Attachments } from '@/activities/files/components/Attachments';
 import { Notes } from '@/activities/notes/components/Notes';
@@ -102,5 +103,9 @@ export const CardComponents: Record<CardType, CardComponentType> = {
 
   [CardType.WorkflowRunOutputCard]: ({ targetableObject }) => (
     <WorkflowRunOutputVisualizer workflowRunId={targetableObject.id} />
+  ),
+
+  [CardType.ChecklistCard]: ({ targetableObject }) => (
+    <Checklist targetableObject={targetableObject} />
   ),
 };

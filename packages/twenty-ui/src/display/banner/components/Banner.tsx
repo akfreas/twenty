@@ -12,7 +12,7 @@ const StyledBanner = styled.div<{ variant?: BannerVariant }>`
   padding: ${({ theme }) => theme.spacing(2) + ' ' + theme.spacing(3)};
   width: 100%;
   color: ${({ theme }) => theme.font.color.inverted};
-  font-family: Inter;
+  font-family: 'JetBrains Mono';
   font-size: ${({ theme }) => theme.font.size.md};
   font-style: normal;
   font-weight: ${({ theme }) => theme.font.weight.medium};

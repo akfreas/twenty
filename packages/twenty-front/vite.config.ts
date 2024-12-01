@@ -74,7 +74,6 @@ export default defineConfig(({ command, mode }) => {
   return {
     root: __dirname,
     cacheDir: '../../node_modules/.vite/packages/twenty-front',
-
     server: {
       port: port,
       protocol: VITE_ENABLE_SSL ? 'https' : 'http',
@@ -92,8 +91,11 @@ export default defineConfig(({ command, mode }) => {
           '**/@blocknote/core/src/fonts/**',
         ],
       },
+      watch: {
+        // Add `vgc-core` directory to be watched
+        ignored: ['!**/vgc-core/**'], // Exclude node_modules but include vgc-core
+      },
     },
-
     plugins: [
       react({ jsxImportSource: '@emotion/react' }),
       tsconfigPaths({
@@ -134,7 +136,11 @@ export default defineConfig(({ command, mode }) => {
     ],
 
     optimizeDeps: {
-      exclude: ['node_modules/.vite', 'node_modules/.cache'],
+      exclude: [
+        'node_modules/.vite',
+        'node_modules/.cache',
+        '@akfreas/vgc-core',
+      ],
     },
 
     build: {
@@ -159,6 +165,9 @@ export default defineConfig(({ command, mode }) => {
       alias: {
         react: path.resolve(__dirname, '../../node_modules/react'),
         path: 'rollup-plugin-node-polyfills/polyfills/path',
+        '@akfreas/vgc-core': path.resolve(
+          '/Users/akfreas/github/VeryGood/packages/vgc-core',
+        ),
       },
     },
   };

@@ -1,12 +1,12 @@
+import { WrappedTextEditor } from '@/activities/checklist/components/WrappedTextEditor';
 import { useNotes } from '@/activities/notes/hooks/useNotes';
 import { ActivityTargetableObject } from '@/activities/types/ActivityTargetableEntity';
 import { Note } from '@/activities/types/Note';
 import { NoteTarget } from '@/activities/types/NoteTarget';
 import { currentWorkspaceState } from '@/auth/states/currentWorkspaceState';
-import { WrappedTextEditor } from '@/checklist/WrappedTextEditor';
 import { CoreObjectNameSingular } from '@/object-metadata/types/CoreObjectNameSingular';
 import { useCreateOneRecord } from '@/object-record/hooks/useCreateOneRecord';
-import { OpportunityChecklistDetail } from '@akfreas/vgc-core';
+import { VGCOpportunityChecklist } from '@akfreas/vgc-core';
 import styled from '@emotion/styled';
 import { useRecoilValue } from 'recoil';
 type ChecklistProps = {
@@ -44,7 +44,7 @@ export const Checklist = ({ targetableObject }: ChecklistProps) => {
   const { loading: loadingNotes } = useNotes(targetableObject);
   return (
     <StyledChecklistContainer>
-      <OpportunityChecklistDetail
+      <VGCOpportunityChecklist
         workspaceId={currentWorkspace?.id}
         crmOpportunityId={targetableObject.id}
         createNewNoteAction={createNewNote}

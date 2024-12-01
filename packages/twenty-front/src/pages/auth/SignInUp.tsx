@@ -24,14 +24,14 @@ export const SignInUp = () => {
       signInUpStep === SignInUpStep.Init ||
       signInUpStep === SignInUpStep.Email
     ) {
-      return 'Welcome to Twenty';
+      return 'Welcome to VGC';
     }
     if (signInUpStep === SignInUpStep.SSOWorkspaceSelection) {
       return 'Choose SSO connection';
     }
     return signInUpMode === SignInUpMode.SignIn
-      ? 'Sign in to Twenty'
-      : 'Sign up to Twenty';
+      ? 'Sign in to VGC'
+      : 'Sign up to VGC';
   }, [signInUpMode, signInUpStep]);
 
   if (isDefined(currentWorkspace)) {

@@ -34,7 +34,7 @@ const StyledLogo = styled.div<{ logo: string }>`
 
 const StyledName = styled.div`
   color: ${({ theme }) => theme.font.color.primary};
-  font-family: 'Inter';
+  font-family: 'JetBrains Mono';
   font-size: ${({ theme }) => theme.font.size.md};
   font-weight: ${({ theme }) => theme.font.weight.medium};
 `;

@@ -28,7 +28,7 @@ const StyledAppsContainer = styled.div`
 
 const StyledText = styled.div`
   color: ${({ theme }) => theme.font.color.primary};
-  font-family: 'Inter';
+  font-family: 'JetBrains Mono';
   font-size: ${({ theme }) => theme.font.size.lg};
   font-weight: ${({ theme }) => theme.font.weight.semiBold};
   padding: ${({ theme }) => theme.spacing(6)} 0px;

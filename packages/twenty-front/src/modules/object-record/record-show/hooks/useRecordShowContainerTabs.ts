@@ -11,6 +11,7 @@ import { useIsMobile } from '@/ui/utilities/responsive/hooks/useIsMobile';
 import { useRecoilValue } from 'recoil';
 import {
   IconCalendarEvent,
+  IconCheckbox,
   IconMail,
   IconNotes,
   IconPrinter,
@@ -193,6 +194,22 @@ export const useRecordShowContainerTabs = (
         },
       },
       timeline: null,
+    },
+    [CoreObjectNameSingular.Opportunity]: {
+      checklist: {
+        title: 'Checklist',
+        position: 0,
+        Icon: IconCheckbox,
+        cards: [{ type: CardType.ChecklistCard }],
+        hide: {
+          ifMobile: false,
+          ifDesktop: false,
+          ifInRightDrawer: false,
+          ifFeaturesDisabled: [],
+          ifRequiredObjectsInactive: [],
+          ifRelationsMissing: [],
+        },
+      },
     },
   };
 

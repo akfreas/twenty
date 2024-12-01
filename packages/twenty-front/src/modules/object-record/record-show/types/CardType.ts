@@ -2,6 +2,7 @@ export enum CardType {
   FieldCard = 'FieldCard',
   TimelineCard = 'TimelineCard',
   TaskCard = 'TaskCard',
+  ChecklistCard = 'ChecklistCard',
   NoteCard = 'NoteCard',
   FileCard = 'FileCard',
   EmailCard = 'EmailCard',
