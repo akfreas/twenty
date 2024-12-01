@@ -55,6 +55,28 @@ export class JwtAuthStrategy extends PassportStrategy(Strategy, 'jwt') {
     });
   }
 
+  private async validateVGCAPIKey(payload: JwtPayload): Promise<AuthContext> {
+    const workspace = await this.workspaceRepository.findOneBy({
+      id: payload['sub'],
+    });
+
+    if (!workspace) {
+      throw new AuthException(
+        'Workspace not found',
+        AuthExceptionCode.WORKSPACE_NOT_FOUND,
+      );
+    }
+
+    if (payload['jwtid'] !== this.environmentService.get('VGC_JWT_ID')) {
+      throw new AuthException(
+        'Invalid VGC JWT ID',
+        AuthExceptionCode.FORBIDDEN_EXCEPTION,
+      );
+    }
+
+    return { workspace };
+  }
+
   private async validateAPIKey(payload: JwtPayload): Promise<AuthContext> {
     let apiKey: ApiKeyWorkspaceEntity | null = null;
 
@@ -129,6 +151,10 @@ export class JwtAuthStrategy extends PassportStrategy(Strategy, 'jwt') {
 
     if (payload.type === 'API_KEY') {
       return { ...(await this.validateAPIKey(payload)), workspaceMemberId };
+    }
+
+    if (payload.type === 'VGC_API_KEY') {
+      return { ...(await this.validateVGCAPIKey(payload)), workspaceMemberId };
     }
 
     return { ...(await this.validateAccessToken(payload)), workspaceMemberId };
