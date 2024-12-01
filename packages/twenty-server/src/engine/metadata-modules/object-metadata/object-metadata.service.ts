@@ -424,15 +424,17 @@ export class ObjectMetadataService extends TypeOrmQueryService<ObjectMetadataEnt
       existingObjectMetadata,
     );
 
-    if (!(newTargetTableName === existingTargetTableName)) {
+    if (newTargetTableName !== existingTargetTableName) {
       await this.objectMetadataMigrationService.createRenameTableMigration(
         existingObjectMetadata,
         objectMetadataForUpdate,
+        objectMetadataForUpdate.workspaceId,
       );
 
-      await this.objectMetadataMigrationService.createRelationsUpdatesMigrations(
+      await this.objectMetadataMigrationService.createStandardRelationsUpdatesMigrations(
         existingObjectMetadata,
         objectMetadataForUpdate,
+        objectMetadataForUpdate.workspaceId,
       );
     }
 

@@ -93,6 +93,8 @@ fi
 echo "# === Randomly generated secrets ===" >>.env
 echo "APP_SECRET=$(openssl rand -base64 32)" >>.env
 echo "" >>.env
+echo "PGPASSWORD_SUPERUSER=$(openssl rand -hex 16)" >>.env
+echo "" >>.env
 echo "POSTGRES_ADMIN_PASSWORD=$(openssl rand -base64 32)" >>.env
 
 echo -e "\t• .env configuration completed"

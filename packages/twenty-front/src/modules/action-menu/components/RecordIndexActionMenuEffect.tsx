@@ -1,5 +1,7 @@
 import { useActionMenu } from '@/action-menu/hooks/useActionMenu';
 import { ActionMenuComponentInstanceContext } from '@/action-menu/states/contexts/ActionMenuComponentInstanceContext';
+import { getActionBarIdFromActionMenuId } from '@/action-menu/utils/getActionBarIdFromActionMenuId';
+import { getActionMenuDropdownIdFromActionMenuId } from '@/action-menu/utils/getActionMenuDropdownIdFromActionMenuId';
 import { isCommandMenuOpenedState } from '@/command-menu/states/isCommandMenuOpenedState';
 import { contextStoreNumberOfSelectedRecordsComponentState } from '@/context-store/states/contextStoreNumberOfSelectedRecordsComponentState';
 import { isBottomBarOpenedComponentState } from '@/ui/layout/bottom-bar/states/isBottomBarOpenedComponentState';
@@ -27,13 +29,13 @@ export const RecordIndexActionMenuEffect = () => {
   // previous hotkey scope, and we don't want that here.
   const setIsBottomBarOpened = useSetRecoilComponentStateV2(
     isBottomBarOpenedComponentState,
-    `action-bar-${actionMenuId}`,
+    getActionBarIdFromActionMenuId(actionMenuId),
   );
 
   const isDropdownOpen = useRecoilValue(
     extractComponentState(
       isDropdownOpenComponentState,
-      `action-menu-dropdown-${actionMenuId}`,
+      getActionMenuDropdownIdFromActionMenuId(actionMenuId),
     ),
   );
   const { isRightDrawerOpen } = useRightDrawer();
@@ -41,7 +43,12 @@ export const RecordIndexActionMenuEffect = () => {
   const isCommandMenuOpened = useRecoilValue(isCommandMenuOpenedState);
 
   useEffect(() => {
-    if (contextStoreNumberOfSelectedRecords > 0 && !isDropdownOpen) {
+    if (
+      contextStoreNumberOfSelectedRecords > 0 &&
+      !isDropdownOpen &&
+      !isRightDrawerOpen &&
+      !isCommandMenuOpened
+    ) {
       // We only handle opening the ActionMenuBar here, not the Dropdown.
       // The Dropdown is already managed by sync handlers for events like
       // right-click to open and click outside to close.
@@ -55,6 +62,8 @@ export const RecordIndexActionMenuEffect = () => {
     openActionBar,
     closeActionBar,
     isDropdownOpen,
+    isRightDrawerOpen,
+    isCommandMenuOpened,
   ]);
 
   useEffect(() => {

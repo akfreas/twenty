@@ -5,6 +5,7 @@ on:
       - verygood
 jobs:
   deploy-main:
+    timeout-minutes: 3
     runs-on: ubuntu-latest
     steps:
       - name: Repository Dispatch
