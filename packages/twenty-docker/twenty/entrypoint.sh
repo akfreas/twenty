@@ -19,7 +19,7 @@ if [ "${ENABLE_DB_MIGRATIONS}" = "true" ] && [ ! -f /app/docker-data/db_status ]
 
     # Mark initialization as done
     echo "Successfuly migrated DB!"
-    touch /app/docker-data/db_status
+    # touch /app/docker-data/db_status
 fi
 
 # Continue with the original Docker command
