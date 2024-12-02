@@ -134,7 +134,7 @@ export default defineConfig(({ command, mode }) => {
     ],
 
     optimizeDeps: {
-      exclude: ['node_modules/.vite', 'node_modules/.cache'],
+      exclude: ['../../node_modules/.vite', '../../node_modules/.cache'],
     },
 
     build: {

@@ -32,6 +32,22 @@ export class GraphqlQueryUpdateManyResolverService extends GraphqlQueryBaseResol
       objectMetadataItemWithFieldMaps.nameSingular,
     );
 
+    const existingRecordsBuilder = queryBuilder.clone();
+
+    executionArgs.graphqlQueryParser.applyFilterToBuilder(
+      existingRecordsBuilder,
+      objectMetadataItemWithFieldMaps.nameSingular,
+      executionArgs.args.filter,
+    );
+
+    const existingRecords = await existingRecordsBuilder.getMany();
+
+    const formattedExistingRecords = formatResult<ObjectRecord[]>(
+      existingRecords,
+      objectMetadataItemWithFieldMaps,
+      objectMetadataMaps,
+    );
+
     const tableName = computeTableName(
       objectMetadataItemWithFieldMaps.nameSingular,
       objectMetadataItemWithFieldMaps.isCustom,
@@ -41,16 +57,6 @@ export class GraphqlQueryUpdateManyResolverService extends GraphqlQueryBaseResol
       queryBuilder,
       tableName,
       executionArgs.args.filter,
-    );
-
-    const existingRecordsBuilder = queryBuilder.clone();
-
-    const existingRecords = await existingRecordsBuilder.getMany();
-
-    const formattedExistingRecords = formatResult<ObjectRecord[]>(
-      existingRecords,
-      objectMetadataItemWithFieldMaps,
-      objectMetadataMaps,
     );
 
     const data = formatData(
